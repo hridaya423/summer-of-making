@@ -218,17 +218,6 @@ module Admin
       redirect_to admin_user_path(@user)
     end
 
-    def refresh_hackatime
-      begin
-        @user.refresh_hackatime_data_now
-        flash[:success] = "your wish is my command"
-      rescue => e
-        Honeybadger.notify(e, context: { user_id: @user.id })
-        flash[:error] = "failed manual refresh ht #{e.message}"
-      end
-      redirect_to admin_user_path(@user)
-    end
-
     private
 
     def fetch_hackatime(email)

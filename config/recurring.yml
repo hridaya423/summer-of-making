@@ -104,3 +104,10 @@ production:
     schedule: every 12 minutes # 5 times per hour
     concurrency: 1
     description: "Batch guess project categorization using Mole service"
+
+  refresh_idv_status:
+    class: RefreshIdvStatusJob
+    command: perform_unique
+    schedule: every 10 minutes
+    concurrency: 1
+    description: "Refresh Identity Vault verification status for users to handle status changes"

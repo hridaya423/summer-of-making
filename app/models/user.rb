@@ -508,21 +508,43 @@ class User < ApplicationRecord
 
     update!(
       identity_vault_access_token: access_token,
-      identity_vault_id:,
-      ysws_verified: idv_data.dig(:identity,
-                                  :verification_status) == "verified" && idv_data.dig(:identity, :ysws_eligible)
+      identity_vault_id: identity_vault_id
     )
+
+    refresh_identity_vault_data!
   end
 
   def refresh_identity_vault_data!
     idv_data = fetch_idv
+    identity_data = idv_data.dig(:identity)
+
+    verification_status = identity_data[:verification_status]
+    ysws_eligible = identity_data[:ysws_eligible]
+    is_verified = verification_status == "verified" && ysws_eligible
 
     update!(
-      first_name: idv_data.dig(:identity, :first_name),
-      last_name: idv_data.dig(:identity, :last_name),
-      ysws_verified: idv_data.dig(:identity,
-                                  :verification_status) == "verified" && idv_data.dig(:identity, :ysws_eligible)
+      first_name: identity_data[:first_name],
+      last_name: identity_data[:last_name],
+      ysws_verified: is_verified
     )
+
+    cached_status = case verification_status
+    when "pending"
+      "pending"
+    when "needs_submission"
+      "needs_resubmission"
+    when "verified"
+      ysws_eligible ? "verified" : "ineligible"
+    else
+      "ineligible"
+    end
+
+    Rails.cache.write("user_idv_status_#{id}", cached_status, expires_in: 1.hour)
+
+    # and not hit like every waking second
+    if is_verified && !ysws_verified_was
+      notify_xyz_on_verified
+    end
   end
 
   def sync_slack_id_into_idv!
@@ -552,23 +574,30 @@ class User < ApplicationRecord
       return :verified
     end
 
-    idv_data = fetch_idv[:identity]
+    if ysws_verified?
+      :verified
+    elsif identity_vault_access_token.present?
+      cached_status = Rails.cache.read("user_idv_status_#{id}")
+      return cached_status.to_sym if cached_status
 
-    case idv_data[:verification_status]
-    when "pending"
       :pending
-    when "needs_submission"
-      :needs_resubmission
-    when "verified"
-      if idv_data[:ysws_eligible]
-        notify_xyz_on_verified
-        update(ysws_verified: true) unless ysws_verified?
-        :verified
-      else
-        :ineligible
-      end
     else
-      :ineligible
+      :not_linked
+    end
+  end
+
+  def refresh_verification_status!
+    return :not_linked if identity_vault_id.blank?
+
+    begin
+      refresh_identity_vault_data!
+      verification_status
+    rescue StandardError => e
+      Rails.logger.error "Failed to refresh verification status for user #{id}: #{e.message}"
+      Honeybadger.notify(e, context: { user_id: id, slack_id: slack_id })
+
+      cached_status = Rails.cache.read("user_idv_status_#{id}")
+      cached_status&.to_sym || :pending
     end
   end
 

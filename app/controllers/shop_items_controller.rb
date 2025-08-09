@@ -178,7 +178,8 @@ class ShopItemsController < ApplicationController
   def refresh_verf!
     return unless current_user&.identity_vault_linked?
     return if current_verification_status == :verified
-    current_user&.refresh_identity_vault_data!
+    # kinda want the latest data in shop
+    current_user&.refresh_verification_status!
   end
 
   def shop_item_params

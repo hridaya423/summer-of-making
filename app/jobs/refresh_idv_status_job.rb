@@ -7,7 +7,7 @@ class RefreshIdvStatusJob < ApplicationJob
   def perform
     # latesty users
     users_to_check = User.where.not(identity_vault_access_token: nil)
-                        .where("updated_at > ? OR ysws_verified = false", 1.week.ago)
+                        .where("created_at > ? OR ysws_verified = false", 1.week.ago)
                         .limit(50)
 
     Rails.logger.info "Refreshing IDV status for #{users_to_check.count} users"

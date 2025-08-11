@@ -645,7 +645,8 @@ class ProjectsController < ApplicationController
         position: position,
         payout_count: payout_count,
         payout_sum: payout_sum,
-        devlogs_since_last_count: devlogs_count
+        devlogs_since_last_count: devlogs_count,
+        hours_covered: helpers.format_seconds(ship_event.seconds_covered)
       }
     end
 

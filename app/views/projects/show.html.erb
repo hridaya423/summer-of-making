@@ -164,7 +164,7 @@
                           </span>
                           <span class="text-som-detail text-xs sm:text-sm 2xl:text-base">•</span>
                           <span class="text-som-detail text-xs sm:text-sm 2xl:text-base">
-                            Covers <%= pluralize(ship_data[:devlogs_since_last_count], "devlog") %>
+                            Covers <%= pluralize(ship_data[:devlogs_since_last_count], "devlog") %> and <%= ship_data[:hours_covered] %>
                           </span>
                           <%
                             # Get devlogs since previous ship event or project start

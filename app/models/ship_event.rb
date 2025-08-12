@@ -28,6 +28,16 @@ class ShipEvent < ApplicationRecord
   after_create :maybe_create_ship_certification
   after_create :award_user_badges
 
+  def has_feedback?
+    feedback.present?
+  end
+
+  def feedback_summary
+    return nil unless has_feedback?
+    
+    feedback.match(/\*\*Summary\*\*:\s*(.+?)(?=\n\*\*|\z)/m)&.[](1)&.strip
+  end
+
   def self.airtable_table_name
     "_ship_events"
   end

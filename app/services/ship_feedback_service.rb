@@ -12,10 +12,26 @@ class ShipFeedbackService
     prompt = build_feedback_prompt(explanations)
     
     begin
-      feedback = GroqService.call(prompt)
-      @ship_event.update!(feedback: feedback)
-      feedback
-    rescue GroqService::InferenceError => e
+      payload = {
+        messages: [{ role: "user", content: prompt }],
+        model: "qwen/qwen3-32b",
+        reasoning_effort: "default",
+        include_reasoning: false,
+        temperature: 0.7
+      }
+      
+      response = Faraday.post("https://ai.hackclub.com/chat/completions", payload.to_json, "Content-Type" => "application/json")
+      body = JSON.parse(response.body)
+      feedback = body["choices"]&.first&.dig("message", "content") || "No response from AI"
+      
+      if feedback.present?
+        @ship_event.update!(feedback: feedback)
+        feedback
+      else
+        Rails.logger.error "Failed to generate ship feedback for ship_event #{@ship_event.id}: Empty response"
+        nil
+      end
+    rescue => e
       Rails.logger.error "Failed to generate ship feedback for ship_event #{@ship_event.id}: #{e.message}"
       nil
     end
@@ -38,17 +54,23 @@ class ShipFeedbackService
     project_name = @ship_event.project.title
     
     <<~PROMPT
-      Analyze the following voter feedback for a shipped project called "#{project_name}". Provide structured feedback with:
+      You are an expert project reviewer providing constructive feedback for a shipped project called "{project_name}".
 
-      1. **Summary**: Brief overview of the project reception (2-3 sentences)
-      2. **Strengths**: Key positive aspects mentioned by voters (3-4 bullet points)
-      3. **Areas for Improvement**: Constructive feedback and suggestions (2-3 bullet points)  
-      4. **Common Themes**: Recurring topics across voter explanations
+      Based on the voter feedback provided, write a concise summary paragraph that addresses:
 
-      Keep the tone constructive and encouraging. Focus on specific technical and creative aspects mentioned by voters.
-      Format your response in clean markdown with clear sections.
+      1. Overall community reception and sentiment
+      2. Top 2-3 strengths consistently mentioned by voters
+      3. Most actionable improvement suggestions or recurring themes
 
-      Voter explanations:
+      REQUIREMENTS:
+      Write in plain text only (no markdown, headers, or bullet points)
+      Keep to exactly 4-5 sentences in a single paragraph
+      Maintain an encouraging and constructive tone
+      Prioritize the most significant and recurring feedback points
+      Use specific language rather than generic praise
+      If feedback is mixed, acknowledge both positives and areas for growth
+
+      Voter Feedback Data:
       #{explanations}
     PROMPT
   end

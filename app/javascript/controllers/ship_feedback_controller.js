@@ -41,7 +41,7 @@ export default class extends Controller {
       const data = await response.json()
       
       if (response.ok) {
-        this.contentTarget.innerHTML = this.markdownToHtml(data.feedback)
+        this.contentTarget.innerHTML = `<div class="prose max-w-none"><p class="mb-3">${this.escapeHtml(data.feedback)}</p></div>`
         this.loadedValue = true
       } else {
         this.contentTarget.innerHTML = `<p class="text-gray-500">No feedback available yet.</p>`
@@ -54,15 +54,9 @@ export default class extends Controller {
     }
   }
 
-  markdownToHtml(markdown) {
-    return markdown
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\* (.*?)(\n|$)/g, '<li>$1</li>')
-      .replace(/\n\n/g, '</p><p class="mb-3">')
-      .replace(/\n/g, '<br>')
-      .replace(/^/, '<div class="prose max-w-none">')
-      .replace(/$/, '</div>')
-      .replace(/<li>/g, '<ul class="list-disc list-inside mb-3"><li>')
-      .replace(/<\/li>/g, '</li></ul>')
+  escapeHtml(text) {
+    const div = document.createElement('div')
+    div.textContent = text
+    return div.innerHTML
   }
 }

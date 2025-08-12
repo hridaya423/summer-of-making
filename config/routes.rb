@@ -320,6 +320,7 @@ Rails.application.routes.draw do
   resources :ship_events, only: [] do
     member do
       get :feedback
+      post :regenerate_feedback
     end
   end
 

@@ -54,7 +54,7 @@ class ShipFeedbackService
     project_name = @ship_event.project.title
     
     <<~PROMPT
-      You are an expert project reviewer providing constructive feedback for a shipped project called "{project_name}".
+      You are an expert project reviewer providing constructive feedback for a shipped project called "#{project_name}".
 
       Based on the voter feedback provided, write a concise summary paragraph that addresses:
 

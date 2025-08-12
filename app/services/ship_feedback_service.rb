@@ -66,7 +66,7 @@ class ShipFeedbackService
       Based on the voter feedback provided, write a concise summary paragraph that addresses:
 
       1. Overall community reception and sentiment about the project
-      2. Top 2-3 technical or creative strengths consistently mentioned by voters
+      2. Top 2-3 strengths consistently mentioned by voters
       3. Most actionable improvement suggestions or recurring themes
 
       OUTPUT REQUIREMENTS:

@@ -38,6 +38,18 @@ class ShipEvent < ApplicationRecord
     feedback.match(/\*\*Summary\*\*:\s*(.+?)(?=\n\*\*|\z)/m)&.[](1)&.strip
   end
 
+  def vote_count
+    VoteChange.where(project: project).where("created_at > ?", created_at).count
+  end
+
+  def votes_needed_for_payout
+    [18 - vote_count, 0].max
+  end
+
+  def ready_for_payout?
+    vote_count >= 18
+  end
+
   def self.airtable_table_name
     "_ship_events"
   end

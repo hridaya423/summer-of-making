@@ -467,17 +467,41 @@ class User < ApplicationRecord
 
   def balance
     if association(:payouts).loaded?
-      payouts.sum(&:amount)
+      payouts.reject(&:escrowed).sum(&:amount)
     else
-      payouts.sum(:amount)
+      payouts.where(escrowed: false).sum(:amount)
     end
   end
 
+  def escrowed_balance
+    if association(:payouts).loaded?
+      payouts.select(&:escrowed).sum(&:amount)
+    else
+      payouts.where(escrowed: true).sum(:amount)
+    end
+  end
+
+  def total_shells
+    balance + escrowed_balance
+  end
+
+  def votes_required_for_release
+    ship_events_count * 20
+  end
+
+  def has_met_voting_requirement?
+    votes.count >= votes_required_for_release
+  end
+
+  def release_escrowed_payouts_if_eligible!
+    return false unless has_met_voting_requirement?
+
+    updated = payouts.where(escrowed: true).update_all(escrowed: false)
+    updated > 0
+  end
+
   def ship_events_count
-    projects.joins(:ship_events)
-            .left_joins(ship_events: :payouts)
-            .distinct
-            .size
+    projects.joins(:ship_events).count("ship_events.id")
   end
 
   # Avo backtraces

@@ -75,6 +75,7 @@ class Vote < ApplicationRecord
 
   after_create :process_vote_results
   after_create :queue_badge_award
+  after_commit :maybe_release_user_escrow, on: :create
 
   # Helper methods to get winner/loser/tied projects
   def winner_project
@@ -140,5 +141,9 @@ class Vote < ApplicationRecord
 
   def process_vote_results
     VoteProcessingService.new(self).process
+  end
+
+  def maybe_release_user_escrow
+    user.release_escrowed_payouts_if_eligible!
   end
 end

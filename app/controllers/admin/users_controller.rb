@@ -54,7 +54,7 @@ module Admin
       unless parameters[:reason].present?
         return redirect_to(admin_user_path(@user), notice: "Please provide a reason!")
       end
-      @payout = @user.payouts.build(parameters.merge(payable: @user))
+      @payout = @user.payouts.build(parameters.merge(payable: @user, escrowed: false))
 
       begin
         @payout.save!

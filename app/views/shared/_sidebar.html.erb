@@ -216,6 +216,20 @@
         </div>
 
         <div class="ml-3 mt-2">
+          <div class="text-sm text-som-dark/70" data-sidebar-target="collapseFade">
+            <div class="flex items-center gap-2">
+              <span>Escrowed:</span>
+              <span class="flex items-center gap-1 font-semibold">
+                <%= render_shells(current_user.escrowed_balance) %>
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span>Total:</span>
+              <span class="flex items-center gap-1 font-semibold">
+                <%= render_shells(current_user.total_shells) %>
+              </span>
+            </div>
+          </div>
           <%= render "shared/link",
             text: "Log out",
             icon: "exit",

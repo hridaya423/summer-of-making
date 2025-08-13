@@ -48,7 +48,7 @@ module Api
 
         balances_by_user = {}
         if current_user&.has_badge?(:pocket_watcher)
-          balances_by_user = Payout.where(user_id: user_ids).group(:user_id).sum(:amount)
+          balances_by_user = Payout.where(user_id: user_ids, escrowed: false).group(:user_id).sum(:amount)
         end
 
         @users = users.map do |user|

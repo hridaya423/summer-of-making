@@ -339,9 +339,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "reason"
+    t.boolean "escrowed", default: false, null: false
     t.index ["created_at", "amount"], name: "index_payouts_on_created_at_and_amount"
     t.index ["created_at", "payable_type", "amount"], name: "index_payouts_on_date_type_amount"
     t.index ["created_at"], name: "index_payouts_on_created_at"
+    t.index ["escrowed"], name: "index_payouts_on_escrowed"
     t.index ["payable_type", "payable_id"], name: "index_payouts_on_payable"
     t.index ["payable_type"], name: "index_payouts_on_payable_type"
     t.index ["user_id"], name: "index_payouts_on_user_id"
@@ -379,7 +381,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
     t.integer "views_count", default: 0, null: false
     t.float "x"
     t.float "y"
-    t.boolean "is_sinkening_ship"
+    t.boolean "is_sinkening_ship", default: false
     t.index ["is_shipped"], name: "index_projects_on_is_shipped"
     t.index ["user_id"], name: "index_projects_on_user_id"
     t.index ["views_count"], name: "index_projects_on_views_count"
@@ -525,7 +527,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
   end
 
   create_table "sinkening_settings", force: :cascade do |t|
-    t.float "intensity"
+    t.float "intensity", default: 1.0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "slack_story_url"

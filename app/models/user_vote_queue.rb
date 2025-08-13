@@ -57,7 +57,8 @@ class UserVoteQueue < ApplicationRecord
 
   def current_projects
     loop do
-      projects = current_ship_events.map(&:project).compact
+      ship_events = current_ship_events
+      projects = ship_events.map(&:project).compact
 
       # because of scope, this should filter for deleted projects
       if projects.size < 2
@@ -67,6 +68,13 @@ class UserVoteQueue < ApplicationRecord
           refill_queue!(1)
         end
 
+        advance_position!
+        next
+      end
+
+      # voting queue might get stale and we might have two paid projects
+      if both_paid?(ship_events)
+        next if replace_current_pair!
         advance_position!
         next
       end
@@ -151,6 +159,10 @@ class UserVoteQueue < ApplicationRecord
   end
 
   private
+
+  def both_paid?(ship_events)
+    ship_events.all? { |se| se.payouts.exists? }
+  end
 
   def generate_matchup
     voted_ship_event_ids = user.votes
@@ -307,5 +319,21 @@ class UserVoteQueue < ApplicationRecord
     end
 
     projects.first
+  end
+
+  def replace_current_pair!
+    return false if queue_exhausted? || current_pair.nil?
+
+    10.times do
+      pair = generate_matchup
+      next unless pair && !ship_event_pairs.include?(pair)
+
+      new_pairs = ship_event_pairs.dup
+      new_pairs[current_position] = pair
+      update!(ship_event_pairs: new_pairs, last_generated_at: Time.current)
+      return true
+    end
+
+    false
   end
 end

@@ -108,4 +108,31 @@ class ShipEvent < ApplicationRecord
   def award_user_badges
     user.award_badges_async!("ship_event_created")
   end
+
+  def regenerate_feedback
+    begin
+      service = ShipFeedbackService.new(self)
+      feedback = service.generate_feedback
+      
+      if feedback
+        {
+          success: true,
+          message: "Feedback regenerated successfully",
+          feedback: feedback,
+          ship_event_id: id
+        }
+      else
+        {
+          success: false,
+          message: "Failed to generate feedback - check logs for details"
+        }
+      end
+    rescue => e
+      Rails.logger.error "Admin feedback regeneration failed for ship_event #{id}: #{e.message}"
+      {
+        success: false,
+        message: "An error occurred while regenerating feedback"
+      }
+    end
+  end
 end

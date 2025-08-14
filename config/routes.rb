@@ -320,7 +320,6 @@ Rails.application.routes.draw do
   resources :ship_events, only: [] do
     member do
       get :feedback
-      post :regenerate_feedback
     end
   end
 
@@ -403,6 +402,11 @@ Rails.application.routes.draw do
       end
     end
     resources :sinkenings, only: [ :show, :update ], path: "sinkening"
+    resources :ship_events, only: [] do
+      member do
+        post :regenerate_feedback
+      end
+    end
   end
 
   get "leaderboard", to: "leaderboard#index"

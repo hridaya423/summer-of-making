@@ -63,7 +63,7 @@ export default class extends Controller {
     this.contentTarget.innerHTML = ""
 
     try {
-      const response = await fetch(`/ship_events/${this.shipEventIdValue}/regenerate_feedback`, {
+      const response = await fetch(`/admin/ship_events/${this.shipEventIdValue}/regenerate_feedback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

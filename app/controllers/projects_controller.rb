@@ -626,7 +626,7 @@ class ProjectsController < ApplicationController
 
     ship_events_by_date.each_with_index do |ship_event, index|
       position = index + 1
-      payouts = ship_event.payouts.to_a
+      payouts = ship_event.payouts.where(escrowed: false).to_a
       payout_count = payouts.size
       payout_sum = payouts.sum(&:amount)
 
@@ -645,7 +645,8 @@ class ProjectsController < ApplicationController
         position: position,
         payout_count: payout_count,
         payout_sum: payout_sum,
-        devlogs_since_last_count: devlogs_count
+        devlogs_since_last_count: devlogs_count,
+        hours_covered: helpers.format_seconds(ship_event.seconds_covered)
       }
     end
 

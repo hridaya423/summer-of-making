@@ -61,7 +61,7 @@ class ShopItemsController < ApplicationController
                                          .to_set
 
       # for some reason we're doing current_user.balance on every item
-      @current_balance = current_user.payouts.sum(:amount)
+      @current_balance = current_user.balance
     else
       @ordered_once_item_ids = Set.new
       @current_balance = 0
@@ -114,7 +114,7 @@ class ShopItemsController < ApplicationController
                                          .pluck(:shop_item_id)
                                          .to_set
 
-      @current_balance = current_user.payouts.sum(:amount)
+      @current_balance = current_user.balance
     else
       @ordered_once_item_ids = Set.new
       @current_balance = 0

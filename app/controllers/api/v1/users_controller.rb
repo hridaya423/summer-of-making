@@ -35,7 +35,7 @@ module Api
 
         projects_count_by_user = Project.where(user_id: user_ids).group(:user_id).count
         devlogs_count_by_user  = Devlog.where(user_id: user_ids).group(:user_id).count
-        votes_count_by_user    = Vote.where(user_id: user_ids).group(:user_id).count
+        votes_count_by_user    = Vote.where(user_id: user_ids, status: "active").group(:user_id).count
         projects_with_ship_events = Project.joins(:ship_events)
                                            .where(user_id: user_ids)
                                            .distinct
@@ -48,7 +48,7 @@ module Api
 
         balances_by_user = {}
         if current_user&.has_badge?(:pocket_watcher)
-          balances_by_user = Payout.where(user_id: user_ids).group(:user_id).sum(:amount)
+          balances_by_user = Payout.where(user_id: user_ids, escrowed: false).group(:user_id).sum(:amount)
         end
 
         @users = users.map do |user|
@@ -102,7 +102,7 @@ module Api
           bio: @user.user_profile&.bio,
           projects_count: @user.projects.size,
           devlogs_count: @user.devlogs.count,
-          votes_count: @user.votes.count,
+          votes_count: @user.votes.active.count,
           ships_count: projects_with_ship_events,
           projects: @user.projects.map { |p| { id: p.id, title: p.title, devlogs_count: p.devlogs_count, created_at: p.created_at } },
           coding_time_seconds: @user.has_hackatime? ? @user.all_time_coding_seconds : 0,
@@ -133,7 +133,7 @@ module Api
           bio: user.user_profile&.bio,
           projects_count: user.projects.size,
           devlogs_count: user.devlogs.count,
-          votes_count: user.votes.count,
+          votes_count: user.votes.active.count,
           ships_count: projects_with_ship_events,
           projects: user.projects.map { |p| { id: p.id, title: p.title, devlogs_count: p.devlogs_count, created_at: p.created_at } },
           coding_time_seconds: user.has_hackatime? ? user.all_time_coding_seconds : 0,

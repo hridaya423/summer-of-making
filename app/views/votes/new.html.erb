@@ -31,6 +31,9 @@
       <% end %>
     <% end %>
   <% end %>
+  <% if ENV['TURNSTILE_SITE_KEY'].present? %>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <% end %>
 <% end %>
 
 <div class="container mx-auto px-0 sm:px-4 py-4 md:py-8">
@@ -50,9 +53,7 @@
       <% end %>
     </div>
   <% else %>
-    <div data-controller="voting-steps"
-         data-action="music:played@window->voting-steps#handleMusicPlayed"
-         class="space-y-6 sm:space-y-8">
+    <div class="space-y-6 sm:space-y-8">
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 sm:gap-16 mobile-divide-dashed">
         <% @projects.each_with_index do |project, index| %>
@@ -109,28 +110,20 @@
                   <% if project.demo_link.present? %>
                     <%= render "shared/button",
                         text: "Demo",
-                        link: project.demo_link,
+                        link: track_demo_votes_path(position: index + 1),
                         link_target: "_blank",
-                        type: "secondary",
+                        method: :post,
                         icon: "world.svg",
-                        onclick: "event.stopPropagation()",
-                        data: {
-                          analytics_link: "demo",
-                          action: "mousedown->voting-steps#trackLinkClick touchstart->voting-steps#trackLinkClick keydown->voting-steps#trackLinkClick"
-                        } %>
+                        onclick: "event.stopPropagation()" %>
                   <% end %>
                   <% if project.repo_link.present? %>
                     <%= render "shared/button",
                         text: "Repository",
-                        link: project.repo_link,
+                        link: track_repo_votes_path(position: index + 1),
                         link_target: "_blank",
-                        type: "secondary",
+                        method: :post,
                         icon: "git.svg",
-                        onclick: "event.stopPropagation()",
-                        data: {
-                          analytics_link: "repo",
-                          action: "mousedown->voting-steps#trackLinkClick touchstart->voting-steps#trackLinkClick keydown->voting-steps#trackLinkClick"
-                        } %>
+                        onclick: "event.stopPropagation()" %>
                   <% end %>
 
                   <%= render "projects/report_button", project: project %>

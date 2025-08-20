@@ -4,6 +4,7 @@
 <b>Blue Badge: </b> <%= user.blue_check? ? "yes" : "no" %><br>
 <b>Gold Badge: </b> <%= user.gold_check? ? "yes" : "no" %><br>
 <b>Balance: </b> <%= render_shells user.balance %><br>
+<b>Escrowed: </b> <%= render_shells user.escrowed_balance %><br>
 <b>Shop frozen: </b> <%= user.freeze_shop_activity ? "yes" : "no" %><br>
 <b>Black market access: </b> <%= user.has_black_market? ? "yes" : "no" %><br>
 

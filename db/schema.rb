@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_18_122349) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -339,9 +339,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "reason"
+    t.boolean "escrowed", default: false, null: false
     t.index ["created_at", "amount"], name: "index_payouts_on_created_at_and_amount"
     t.index ["created_at", "payable_type", "amount"], name: "index_payouts_on_date_type_amount"
     t.index ["created_at"], name: "index_payouts_on_created_at"
+    t.index ["escrowed"], name: "index_payouts_on_escrowed"
     t.index ["payable_type", "payable_id"], name: "index_payouts_on_payable"
     t.index ["payable_type"], name: "index_payouts_on_payable_type"
     t.index ["user_id"], name: "index_payouts_on_user_id"
@@ -857,6 +859,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
     t.bigint "ship_event_2_id", null: false
     t.datetime "processed_at"
     t.text "ai_feedback"
+    t.boolean "is_low_quality", default: false, null: false
     t.index ["marked_invalid_at"], name: "index_votes_on_marked_invalid_at"
     t.index ["marked_invalid_by_id"], name: "index_votes_on_marked_invalid_by_id"
     t.index ["project_1_id"], name: "index_votes_on_project_1_id"

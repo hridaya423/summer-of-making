@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between mb-4">
       <div class="flex flex-col">
         <h2 class="text-xl font-bold text-som-dark">Todo list:</h2>
-        <p>May take up to a minute to update!</p>
+        <p>Follow me to get started!</p>
       </div>
       <button data-action="click->todo#close" class="transition-transform text-som-dark hover:scale-110">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -13,6 +13,16 @@
     </div>
 
     <ul class="space-y-2 text-left">
+      <li class="flex items-start">
+        <div class="flex-shrink-0 h-6 w-6 mt-0.5">
+          <div class="h-5 w-5 border-2 <%= current_user.tutorial_video_seen? ? 'bg-forest border-forest' : 'border-som-dark' %> flex items-center justify-center">
+          </div>
+        </div>
+        <span class="ml-2 <%= current_user.tutorial_video_seen? ? 'text-forest' : 'text-som-dark' %>">
+          Watch the <a href="/onboarding.mp4" class="text-blue-500 hover:text-blue-700 underline">Introduction Video</a>
+        </span>
+      </li>
+
       <li class="flex items-start">
         <div class="flex-shrink-0 h-6 w-6 mt-0.5">
           <div class="h-5 w-5 border-2 <%= @todo_flags[:has_projects] ? 'bg-forest border-forest' : 'border-som-dark' %> flex items-center justify-center">
@@ -49,7 +59,7 @@
           </div>
         </div>
         <span class="ml-2 <%= @todo_flags[:has_votes] ? 'text-forest' : 'text-som-dark' %>">
-          Vote on other people's projects to receive your shells
+          <a href="<%= new_vote_path %>" class="text-blue-500 hover:text-blue-700 underline">Vote</a> on other people's projects to receive your shells
         </span>
       </li>
 
@@ -59,7 +69,7 @@
           </div>
         </div>
         <span class="ml-2 <%= @todo_flags[:has_non_free_order] ? 'text-forest' : 'text-som-dark' %>">
-          Spend your hard-earned shells in the shop
+          Spend your hard-earned shells in the <a href="<%= shop_path %>" class="text-blue-500 hover:text-blue-700 underline">shop</a>
         </span>
       </li>
     </ul>

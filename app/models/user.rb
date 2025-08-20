@@ -53,6 +53,7 @@ class User < ApplicationRecord
   has_many :shop_orders
   has_many :shop_card_grants
   has_many :user_badges, dependent: :destroy
+  has_many :comments
 
   accepts_nested_attributes_for :user_profile
   has_many :hackatime_projects
@@ -79,10 +80,11 @@ class User < ApplicationRecord
   scope :search, ->(query) {
     return all if query.blank?
 
-    query = "%#{query}%"
+    fuzzy_query = "%#{query}%".downcase
+    query = query.downcase
     where(
-      "first_name ILIKE ? OR last_name ILIKE ? OR email ILIKE ? OR slack_id ILIKE ? OR display_name ILIKE ? OR identity_vault_id ILIKE ?",
-      query, query, query, query, query, query
+      "LOWER(first_name) ILIKE ? OR LOWER(last_name) ILIKE ? OR LOWER(email) ILIKE ? OR LOWER(slack_id) = ? OR LOWER(display_name) ILIKE ? OR identity_vault_id = ? OR LOWER(CONCAT(first_name, ' ', last_name)) ILIKE ?",
+      fuzzy_query, fuzzy_query, fuzzy_query, query, fuzzy_query, query, fuzzy_query
     )
   }
 
@@ -466,17 +468,41 @@ class User < ApplicationRecord
 
   def balance
     if association(:payouts).loaded?
-      payouts.sum(&:amount)
+      payouts.reject(&:escrowed).sum(&:amount)
     else
-      payouts.sum(:amount)
+      payouts.where(escrowed: false).sum(:amount)
     end
   end
 
+  def escrowed_balance
+    if association(:payouts).loaded?
+      payouts.select(&:escrowed).sum(&:amount)
+    else
+      payouts.where(escrowed: true).sum(:amount)
+    end
+  end
+
+  def total_shells
+    balance + escrowed_balance
+  end
+
+  def votes_required_for_release
+    ship_events_count * 20
+  end
+
+  def has_met_voting_requirement?
+    votes.active.count >= votes_required_for_release
+  end
+
+  def release_escrowed_payouts_if_eligible!
+    return false unless has_met_voting_requirement?
+
+    updated = payouts.where(escrowed: true).update_all(escrowed: false)
+    updated > 0
+  end
+
   def ship_events_count
-    projects.joins(:ship_events)
-            .left_joins(ship_events: :payouts)
-            .distinct
-            .size
+    projects.joins(:ship_events).count("ship_events.id")
   end
 
   # Avo backtraces

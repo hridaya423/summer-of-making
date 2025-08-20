@@ -142,15 +142,29 @@
                           <%= inline_svg("icons/ship.svg", class: "w-6 h-6") %>
                           Ship <%= ship_data[:position] %>
                       </p>
-                      <p class="mb-6">
-                        <%= pluralize(ship_data[:payout_count], "payout") %> of
-                        <picture class="inline-block w-6 h-6 flex-shrink-0">
-                          <source srcset="/shell.avif" type="image/avif">
-                          <source srcset="/shell.webp" type="image/webp">
-                          <img src="/shell.png" class="inline-block w-6 h-6" alt="shell" loading="lazy">
-                        </picture>
-                        <%= ship_data[:payout_sum] %> shells
-                      </p>
+                      <div class="flex flex-col mb-6 space-y-1">
+                        <% if ship_data[:payout_count].positive? %>
+                          <p class="">
+                            <%= pluralize(ship_data[:payout_count], "payout") %> of
+                            <picture class="inline-block w-6 h-6 flex-shrink-0">
+                              <source srcset="/shell.avif" type="image/avif">
+                              <source srcset="/shell.webp" type="image/webp">
+                              <img src="/shell.png" class="inline-block w-6 h-6" alt="shell" loading="lazy">
+                            </picture>
+                            <%= ship_data[:payout_sum] %> shells
+                          </p>
+                        <% else %>
+                          <p class="">
+                            This ship is currently being voted on by the community. Check back later!
+                          </p>
+                        <% end %>
+                        <% if (20 * current_user.ship_events_count) - current_user.votes.active.count > 0 %>
+                          <p class="">
+                            You <%= ship_data[:payout_count].positive? ? '' : 'also ' %>need to vote <%= pluralize((20 * current_user.ship_events_count) - current_user.votes.active.count, 'more time') %> on others' ships to get your shells!
+                            <a href="<%= new_vote_path %>" class="underline text-blue-700 hover:text-blue-800">Start voting</a>.
+                          </p>
+                        <% end %>
+                      </div>
                       <div class="flex items-center">
                         <% if item.user.avatar.present? %>
                           <img src="<%= item.user.avatar %>" alt="<%= item.user.display_name %>" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-2 sm:mr-3" loading="lazy">
@@ -164,7 +178,7 @@
                           </span>
                           <span class="text-som-detail text-xs sm:text-sm 2xl:text-base">•</span>
                           <span class="text-som-detail text-xs sm:text-sm 2xl:text-base">
-                            Covers <%= pluralize(ship_data[:devlogs_since_last_count], "devlog") %>
+                            Covers <%= pluralize(ship_data[:devlogs_since_last_count], "devlog") %> and <%= ship_data[:hours_covered] %>
                           </span>
                           <%
                             # Get devlogs since previous ship event or project start
@@ -192,7 +206,7 @@
                       random_delay = rand(0..6000) # Random delay between 0-6000ms (full animation cycle)
                     %>
                     <div class="absolute top-0 right-0 p-2 z-0 origin-bottom"
-                    style="transform: rotate(<%= rotation_intensity %>deg) translateY(calc(-100% + 2rem)) translateX(1rem); color: <%= item.user.user_profile.balloon_color || '#ff6b6b' %>">
+                    style="transform: rotate(<%= rotation_intensity %>deg) translateY(calc(-100% + 2rem)) translateX(1rem); color: <%= item.user.user_profile&.balloon_color || '#ff6b6b' %>">
                       <%= inline_svg "balloon.svg", height: "10rem", width: "auto",
                       class: "shipevent-balloon",
                       style: "animation-delay: -#{random_delay}ms;" %>

@@ -162,6 +162,7 @@ class Project < ApplicationRecord
     athena: "Athena",
     boba_drops: "Boba Drops",
     cider: "Cider",
+    cmdk: "cmd + k",
     converge: "Converge",
     grub: "Grub",
     hackaccino: "Hackaccino",
@@ -410,22 +411,6 @@ class Project < ApplicationRecord
                                                       .where(payouts: { id: nil })
   end
 
-  def calculate_payout
-    vote_count = VoteChange.where(project: self).maximum(:project_vote_count)
-    min, max = VoteChange.cumulative_elo_range_for_vote_count(vote_count)
-
-    pc = unlerp(min, max, rating)
-
-    mult = Payout.calculate_multiplier pc
-
-    puts "mult", mult
-
-    hours = devlogs.sum(:duration_seconds).fdiv(3600)
-    puts "hours", hours
-
-    payout = hours * mult
-  end
-
   def issue_genesis_payouts
     project_vote_count = VoteChange.where(project: self).count
 
@@ -488,7 +473,7 @@ class Project < ApplicationRecord
 
       reason = "Payout#{" recalculation" if ship.payouts.count > 0} for #{title}'s #{ship.created_at} ship."
 
-      payout = Payout.create!(amount: current_payout_difference, payable: ship, user:, reason:)
+      payout = Payout.create!(amount: current_payout_difference, payable: ship, user:, reason:, escrowed: !user.has_met_voting_requirement?)
 
       puts "PAYOUTCREASED(#{payout.id}) ship.id:#{ship.id} min:#{min} max:#{max} rating_at_vote_count:#{current_rating} pc:#{pc} mult:#{mult} hours:#{hours} amount:#{amount} current_payout_sum:#{current_payout_sum} current_payout_difference:#{current_payout_difference}"
     end
@@ -558,7 +543,7 @@ class Project < ApplicationRecord
 
       reason = "Payout#{" recalculation" if ship.payouts.count > 0} for #{title}'s #{ship.created_at} ship."
 
-      payout = Payout.create!(amount: current_payout_difference, payable: ship, user:, reason:)
+      payout = Payout.create!(amount: current_payout_difference, payable: ship, user:, reason:, escrowed: !user.has_met_voting_requirement?)
 
       puts "PAYOUTCREASED(#{payout.id}) ship.id:#{ship.id} min:#{min} max:#{max} rating_at_vote_count:#{current_rating} pc:#{pc} mult:#{mult} hours:#{hours} amount:#{amount} current_payout_sum:#{current_payout_sum} current_payout_difference:#{current_payout_difference}"
     end
@@ -641,6 +626,7 @@ class Project < ApplicationRecord
     converted_url = self.class.convert_github_blob_to_raw(url)
     send("#{field}=", converted_url) if converted_url != url
   end
+
 
   def self.convert_github_blob_to_raw(url)
     return url if url.blank?

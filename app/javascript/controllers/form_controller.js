@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["submitButton", "form", "explanation", "counter"]
+  static targets = ["submitButton", "form", "explanation", "counter", "shipEvent1", "shipEvent2", "devlogText", "projectId"]
   static values = {
     loadingText: { type: String, default: "Processing..." },
     isConfirming: { type: Boolean, default: false }
@@ -10,7 +10,8 @@ export default class extends Controller {
   connect() {
     this.submitting = false
     this.originalButtonText = null
-    // only when both exist
+
+    // only when both exist (explanation/counter/submit logic)
     if (this.hasExplanationTarget && this.hasSubmitButtonTarget) {
       this.requiredLength = this.explanationTarget.getAttribute('minlength') ? parseInt(this.explanationTarget.getAttribute('minlength'), 10) : 100
       this.updateCounter()
@@ -21,6 +22,27 @@ export default class extends Controller {
       })
       const voteRadios = this.element.querySelectorAll('input[name="vote[winning_project_id]"]')
       voteRadios.forEach(radio => radio.addEventListener('change', () => this.toggleSubmitAccordingToLength()))
+    }
+
+    // Generalized draft persistence for both votes and devlogs
+    // Vote form: explanation, shipEvent1, shipEvent2
+    // Devlog form: devlogText, projectId
+    if (this.hasExplanationTarget && this.hasShipEvent1Target && this.hasShipEvent2Target) {
+      this.draftKey = `vote-explanation-${this.shipEvent1Target.value}-${this.shipEvent2Target.value}`;
+      this.draftField = this.explanationTarget;
+    } else if (this.hasDevlogTextTarget && this.hasProjectIdTarget) {
+      this.draftKey = `devlog-text-${this.projectIdTarget.value}`;
+      this.draftField = this.devlogTextTarget;
+    }
+
+    if (this.draftKey && this.draftField) {
+      const saved = localStorage.getItem(this.draftKey);
+      if (saved) {
+        this.draftField.value = saved;
+      }
+      this.draftField.addEventListener('input', () => {
+        localStorage.setItem(this.draftKey, this.draftField.value);
+      });
     }
   }
 
@@ -46,16 +68,21 @@ export default class extends Controller {
       event.preventDefault()
       return
     }
-    
+
+    // Clear localStorage for this draft after successful submit
+    if (this.draftKey) {
+      localStorage.removeItem(this.draftKey);
+    }
+
     this.submitting = true
     this.disableSubmitButton()
 
     const turboDisabled = this.element.dataset.turbo === 'false'
-    
+
     if (!turboDisabled) {
       this.element.addEventListener("turbo:submit-end", () => {
         this.resetButton()
-        this.element.reset() 
+        this.element.reset()
       }, { once: true })
     }
   }

@@ -40,7 +40,65 @@
   <%= render "shared/page_title",
       title: "Vote",
       subtitle: "Vote on others' projects! #{Vote.count} votes have been submitted so far!" %>
-  <% more_votes_required = current_user.ship_events_count * 20 - @user_vote_count %>
+  <%# so amber doesn't have to answer the same question over and over%>
+  <% if flash[:vote_rejected].present? %>
+    <div id="vote-rejected-modal" data-controller="modal" class="hidden fixed inset-0 z-50 overflow-auto bg-black/30 flex items-center justify-center p-2 md:p-4" data-action="click->modal#clickOutsideHandler">
+      <div class="bg-[#F3ECD8] rounded-2xl border-4 border-[#E4DCC6] w-full max-w-lg mx-2 md:mx-auto relative" data-modal-target="container">
+        <div class="p-3 md:p-4 border-b border-saddle-taupe border-opacity-30">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg md:text-2xl">Heads up!</h3>
+            <button type="button" class="text-gray-600 hover:text-vintage-red cursor-pointer transition-colors duration-200" data-action="click->modal#close">
+              <%= inline_svg "icons/close.svg", class: "h-6 w-6" %>
+            </button>
+          </div>
+        </div>
+        <div class="p-3 md:p-4 space-y-3">
+          <%= audio_tag "chipmunk.mp3", id: "yap-sfx", preload: "auto", class: "hidden" %>
+          <div class="flex justify-center mb-2">
+            <%= image_tag "rac_yap.gif", alt: "Friendly Mascot", class: "w-20 h-20 md:w-28 md:h-28 object-contain" %>
+          </div>
+          <p class="text-som-dark text-base">We couldn't accept that vote. No worries – a quick tune-up will get you back on track :)</p>
+          <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+            <li>Share a bit more about why you chose one project (100+ characters) and how both projects can improve.</li>
+            <li>Consider technical depth, creativity, and storytelling.</li>
+            <li>Peek at the demo/repo and skim the devlogs to make an informed pick.</li>
+          </ul>
+          <div class="pt-2">
+            <%= render "shared/button", text: "Okay, I’ll improve it", classes: "w-full", data: { action: "click->modal#close" } %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('vote-rejected-modal');
+        if (modal) {
+          modal.classList.remove('hidden');
+          document.body.classList.add('overflow-hidden');
+          var sfx = document.getElementById('yap-sfx');
+          if (sfx) {
+            try {
+              sfx.volume = 0.4;
+              sfx.loop = true;
+              sfx.currentTime = 0;
+              sfx.play().catch(function(){});
+            } catch(e) {}
+            try {
+              var observer = new MutationObserver(function() {
+                if (modal.classList.contains('hidden')) {
+                  sfx.pause();
+                  sfx.currentTime = 0;
+                  observer.disconnect();
+                }
+              });
+              observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+            } catch(e) {}
+          }
+        }
+      });
+    </script>
+  <% end %>
+  <% more_votes_required = current_user.votes_required_for_release - @user_vote_count %>
   <% if more_votes_required > 0 %>
     <p class="text-center text-nice-blue text-lg mb-6">You need to vote <%= pluralize(more_votes_required, "more time") %>!</p>
   <% end %>

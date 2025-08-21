@@ -100,13 +100,23 @@ class VotesController < ApplicationController
       current_user.advance_vote_queue!
       session.delete(:current_vote_signature)
 
-      vote_result = if @vote.winning_project_id.nil?
-                     "Tie vote submitted!"
-      else
-                     "Vote submitted!"
+      begin
+        @vote.reload
+      rescue StandardError
       end
 
-      redirect_to new_vote_path, notice: vote_result
+      if @vote.status == "invalid"
+        flash[:vote_rejected] = true
+        redirect_to new_vote_path
+      else
+        vote_result = if @vote.winning_project_id.nil?
+                       "Tie vote submitted!"
+        else
+                       "Vote submitted!"
+        end
+
+        redirect_to new_vote_path, notice: vote_result
+      end
     else
       redirect_to new_vote_path, alert: @vote.errors.full_messages.join(", ")
     end

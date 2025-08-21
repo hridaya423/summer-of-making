@@ -8,8 +8,8 @@
   }) do |f| %>
 
   <%# Ship event IDs and signature for secure voting %>
-  <%= f.hidden_field :ship_event_1_id, value: @ship_events&.first&.id %>
-  <%= f.hidden_field :ship_event_2_id, value: @ship_events&.last&.id %>
+  <%= f.hidden_field :ship_event_1_id, value: @ship_events&.first&.id, data: { form_target: "shipEvent1" } %>
+  <%= f.hidden_field :ship_event_2_id, value: @ship_events&.last&.id, data: { form_target: "shipEvent2" } %>
   <%= f.hidden_field :signature, value: @vote_signature %>
 
   <% if ENV['TURNSTILE_SITE_KEY'].present? %>

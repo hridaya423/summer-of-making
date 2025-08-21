@@ -487,7 +487,11 @@ class User < ApplicationRecord
   end
 
   def votes_required_for_release
-    ship_events_count * 20
+    approved_count = ship_events
+      .joins(project: :ship_certifications)
+      .where(ship_certifications: { judgement: ShipCertification.judgements[:approved] })
+      .count("ship_events.id")
+    approved_count * 20
   end
 
   def has_met_voting_requirement?
@@ -499,10 +503,6 @@ class User < ApplicationRecord
 
     updated = payouts.where(escrowed: true).update_all(escrowed: false)
     updated > 0
-  end
-
-  def ship_events_count
-    projects.joins(:ship_events).count("ship_events.id")
   end
 
   # Avo backtraces

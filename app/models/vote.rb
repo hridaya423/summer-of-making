@@ -150,6 +150,7 @@ class Vote < ApplicationRecord
   end
 
   def maybe_release_user_escrow
+    # NOTE Aug 23, 2025 IST: Escrow is deprecated for new payouts.
     user.release_escrowed_payouts_if_eligible!
   end
 end

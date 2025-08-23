@@ -80,9 +80,18 @@ export default class extends Controller {
     const turboDisabled = this.element.dataset.turbo === 'false'
 
     if (!turboDisabled) {
-      this.element.addEventListener("turbo:submit-end", () => {
+      this.element.addEventListener("turbo:submit-end", (ev) => {
         this.resetButton()
-        this.element.reset()
+        if (ev.detail && ev.detail.success) {
+          this.element.reset()
+        } else {
+          const turnstileEl = document.querySelector('[data-controller="turnstile"]')
+          if (turnstileEl && turnstileEl.controller) {
+            try { turnstileEl.controller.reset() } catch (_) {}
+          } else if (window.turnstile) {
+            try { window.turnstile.reset() } catch (_) {}
+          }
+        }
       }, { once: true })
     }
   }

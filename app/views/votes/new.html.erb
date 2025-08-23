@@ -1,8 +1,6 @@
 <% content_for :head do %>
-  <%= preload_link_tag asset_path("peaceful_glade.mp3"), as: :audio %>
-  <%= preload_link_tag asset_path("luce.wav"), as: :audio %>
-  <%= preload_link_tag asset_path("viscosity.wav"), as: :audio %>
-  <%= preload_link_tag asset_path("meowmeow.wav"), as: :audio %>
+  <%= preload_link_tag asset_path("allhailasc.mp3"), as: :audio %>
+  <%= preload_link_tag asset_path("the_stash.mp3"), as: :audio %>
 
   <% if @projects.present? && @ship_events.present? %>
     <% @projects.each_with_index do |project, index| %>
@@ -30,9 +28,6 @@
         <% end %>
       <% end %>
     <% end %>
-  <% end %>
-  <% if ENV['TURNSTILE_SITE_KEY'].present? %>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <% end %>
 <% end %>
 
@@ -70,37 +65,40 @@
       </div>
     </div>
     <script>
-      document.addEventListener('DOMContentLoaded', function () {
+      function initializeVoteRejectedModal() {
         var modal = document.getElementById('vote-rejected-modal');
-        if (modal) {
-          modal.classList.remove('hidden');
-          document.body.classList.add('overflow-hidden');
-          var sfx = document.getElementById('yap-sfx');
-          if (sfx) {
-            try {
-              sfx.volume = 0.4;
-              sfx.loop = true;
-              sfx.currentTime = 0;
-              sfx.play().catch(function(){});
-            } catch(e) {}
-            try {
-              var observer = new MutationObserver(function() {
-                if (modal.classList.contains('hidden')) {
-                  sfx.pause();
-                  sfx.currentTime = 0;
-                  observer.disconnect();
-                }
-              });
-              observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
-            } catch(e) {}
-          }
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        var sfx = document.getElementById('yap-sfx');
+        if (sfx) {
+          try {
+            sfx.volume = 0.4;
+            sfx.loop = true;
+            sfx.currentTime = 0;
+            var p = sfx.play();
+            if (p && typeof p.catch === 'function') { p.catch(function(){}) }
+          } catch(e) {}
+          try {
+            var observer = new MutationObserver(function() {
+              if (modal.classList.contains('hidden')) {
+                sfx.pause();
+                sfx.currentTime = 0;
+                observer.disconnect();
+              }
+            });
+            observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+          } catch(e) {}
         }
-      });
+      }
+      document.addEventListener('DOMContentLoaded', initializeVoteRejectedModal);
+      document.addEventListener('turbo:load', initializeVoteRejectedModal);
+      document.addEventListener('turbo:render', initializeVoteRejectedModal);
     </script>
   <% end %>
-  <% more_votes_required = current_user.votes_required_for_release - @user_vote_count %>
+  <% more_votes_required = current_user.remaining_votes_to_ship %>
   <% if more_votes_required > 0 %>
-    <p class="text-center text-nice-blue text-lg mb-6">You need to vote <%= pluralize(more_votes_required, "more time") %>!</p>
+    <p class="text-center text-nice-blue text-lg mb-6">You need <%= pluralize(more_votes_required, "more vote") %> since your last ship to release your shells.</p>
   <% end %>
 
   <% if @projects.size < 2 %>
@@ -216,7 +214,7 @@
   <% end %>
 </div>
 
-<div data-controller="music" class="fixed -bottom-28 sm:-bottom-32 -right-12 max-sm:mb-[140px]">
+<div id="journey-music" data-turbo-permanent data-controller="music" class="fixed -bottom-28 sm:-bottom-32 -right-12 max-sm:mb-[140px]">
   <div data-music-target="speechBubble" class="absolute -top-12 -left-10 2xl:-top-16 2xl:-left-12 p-3 bg-[#F3ECD8] rounded-2xl border-4 border-[#E4DCC6] max-w-[150px] opacity-50">
     <div class="text-sm text-forest font-medium">Click me, please!</div>
   </div>
@@ -228,10 +226,8 @@
     <%= image_tag "journeypheusmusic.png", alt: "Toggle Music", class: "w-full h-full object-contain" %>
 
     <div data-music-target="audioTracks" class="hidden">
-      <%= audio_tag "peaceful_glade.mp3", class: "music-track", data: { track_name: "peaceful_glade" } %>
-      <%= audio_tag "luce.wav", class: "music-track", data: { track_name: "luce" } %>
-      <%= audio_tag "viscosity.wav", class: "music-track", data: { track_name: "viscosity" } %>
-      <%= audio_tag "meowmeow.wav", class: "music-track", data: { track_name: "meowmeow" } %>
+      <%= audio_tag "allhailasc.mp3", class: "music-track", data: { track_name: "allhailasc" } %>
+      <%= audio_tag "the_stash.mp3", class: "music-track", data: { track_name: "the_stash" } %>
     </div>
   </button>
 </div>

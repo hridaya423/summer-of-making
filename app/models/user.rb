@@ -166,7 +166,7 @@ class User < ApplicationRecord
         email: email,
         user_info: user_info.to_h
       })
-      raise StandardError, "slack #{slack_id} has a fuck ass email? #{email.inspect}"
+      raise StandardError, "Slack ID #{slack_id} has an invalid email: #{email.inspect}"
     end
 
     User.create!(
@@ -490,15 +490,28 @@ class User < ApplicationRecord
     approved_count = ship_events
       .joins(project: :ship_certifications)
       .where(ship_certifications: { judgement: ShipCertification.judgements[:approved] })
+      .where.not(id: Payout.released.where(payable_type: "ShipEvent").select(:payable_id))
       .count("ship_events.id")
-    approved_count * 20
+    [ approved_count, 1 ].min * 20
   end
 
   def has_met_voting_requirement?
     votes.active.count >= votes_required_for_release
   end
 
+  def votes_since_last_ship_count
+    last_ship_time = ship_events.order(:created_at).last&.created_at
+    scope = votes.active
+    scope = scope.where("created_at > ?", last_ship_time) if last_ship_time
+    scope.count
+  end
+
+  def remaining_votes_to_ship
+    [ 20 - votes_since_last_ship_count, 0 ].max
+  end
+
   def release_escrowed_payouts_if_eligible!
+    # NOTE Aug 23, 2025 IST: Escrow is deprecated for new payouts.
     return false unless has_met_voting_requirement?
 
     updated = payouts.where(escrowed: true).update_all(escrowed: false)

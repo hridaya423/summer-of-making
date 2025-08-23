@@ -17,7 +17,18 @@ class VotesController < ApplicationController
       token = params[:"cf-turnstile-response"] || params[:cf_turnstile_response] || params.dig(:vote, :cf_turnstile_response)
       verification = TurnstileService.verify(token, remote_ip: request.remote_ip)
       unless verification[:success]
-        redirect_to new_vote_path, alert: "Turnstile verification failed. Please try again." and return
+        respond_to do |format|
+          format.turbo_stream do
+            render turbo_stream: turbo_stream.update(
+              "turnstile-error",
+              ActionController::Base.helpers.content_tag(:div, "Turnstile verification failed. Please try again.", class: "text-vintage-red text-sm mt-2")
+            ), status: :unprocessable_entity
+          end
+          format.html do
+            redirect_to new_vote_path, alert: "Turnstile verification failed. Please try again."
+          end
+        end
+        return
       end
     end
 

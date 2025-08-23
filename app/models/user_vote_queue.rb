@@ -56,6 +56,8 @@ class UserVoteQueue < ApplicationRecord
   end
 
   def current_projects
+    voted_se_ids = user.votes.active.distinct.pluck(:ship_event_1_id, :ship_event_2_id).flatten.compact
+
     loop do
       ship_events = current_ship_events
       projects = ship_events.map(&:project).compact
@@ -72,9 +74,22 @@ class UserVoteQueue < ApplicationRecord
         next
       end
 
+      # skip if either ship event in the pair has already been voted on by the user
+      if current_pair && (voted_se_ids.include?(current_pair[0]) || voted_se_ids.include?(current_pair[1]))
+        next if replace_current_pair!
+        advance_position!
+        next
+      end
+
       # voting queue might get stale and we might have two paid projects
       if both_paid?(ship_events)
         next if replace_current_pair!
+        advance_position!
+        next
+      end
+
+      # ensure total time covered for each project is greater than 0 seconds #ai hearbeats yoinked
+      if zero_total_time_covered?(ship_events)
         advance_position!
         next
       end
@@ -164,11 +179,20 @@ class UserVoteQueue < ApplicationRecord
     ship_events.all? { |se| se.payouts.exists? }
   end
 
+  def zero_total_time_covered?(ship_events)
+    ids = ship_events.map(&:id)
+    totals_by_ship_event = Devlog
+      .joins("INNER JOIN ship_events ON devlogs.project_id = ship_events.project_id")
+      .where(ship_events: { id: ids })
+      .where("devlogs.created_at <= ship_events.created_at")
+      .group("ship_events.id")
+      .sum(:duration_seconds)
+
+    ship_events.any? { |se| (totals_by_ship_event[se.id] || 0) <= 0 }
+  end
+
   def generate_matchup
-    voted_ship_event_ids = user.votes
-                              .joins(vote_changes: { project: :ship_events })
-                              .distinct
-                              .pluck("ship_events.id")
+    voted_ship_event_ids = user.votes.active.distinct.pluck(:ship_event_1_id, :ship_event_2_id).flatten.compact
 
     projects_with_latest_ship = Project
                                   .joins(:ship_events)

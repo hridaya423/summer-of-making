@@ -14,6 +14,7 @@ production:
     class: UserHackatimeDataRefreshJob
     command: perform_unique
     queue: default
+    concurrency: 1
     schedule: every 15 minutes
     description: "Refresh Hackatime stats for all users with Hackatime enabled"
 

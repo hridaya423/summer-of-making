@@ -2,7 +2,7 @@
   url: votes_path,
   class: "space-y-6",
   data: {
-    turbo: false,
+    turbo: true,
     controller: "form",
     action: "submit->form#validateAndPreventDoubleSubmission"
   }) do |f| %>
@@ -13,8 +13,9 @@
   <%= f.hidden_field :signature, value: @vote_signature %>
 
   <% if ENV['TURNSTILE_SITE_KEY'].present? %>
-    <div class="flex justify-center mb-4">
-      <div class="cf-turnstile" data-sitekey="<%= ENV['TURNSTILE_SITE_KEY'] %>" data-theme="auto"></div>
+    <div class="flex flex-col items-center mb-4">
+      <div data-controller="turnstile" data-sitekey="<%= ENV['TURNSTILE_SITE_KEY'] %>" data-theme="auto"></div>
+      <div id="turnstile-error"></div>
     </div>
   <% end %>
 

@@ -630,6 +630,10 @@ class ProjectsController < ApplicationController
       payout_count = payouts.size
       payout_sum = payouts.sum(&:amount)
 
+      escrowed_payouts = ship_event.payouts.where(escrowed: true).to_a
+      escrow_count = escrowed_payouts.size
+      escrow_sum = escrowed_payouts.sum(&:amount)
+
       if index == 0
         devlogs_count = devlogs_by_date.count do |devlog|
           devlog.created_at <= ship_event.created_at
@@ -645,6 +649,8 @@ class ProjectsController < ApplicationController
         position: position,
         payout_count: payout_count,
         payout_sum: payout_sum,
+        escrow_count: escrow_count,
+        escrow_sum: escrow_sum,
         devlogs_since_last_count: devlogs_count,
         hours_covered: helpers.format_seconds(ship_event.seconds_covered)
       }

@@ -65,7 +65,7 @@ class OneTime::RetroactiveEscrowPayoutsJob < ApplicationJob
       # Notify the user via Slack DM when escrow is applied
       unless dry_run
         if user.slack_id.present?
-          remaining_votes = [ user.votes_required_for_release - user.votes.count, 0 ].max
+          remaining_votes = [ user.votes_required_for_release - user.votes.active.count, 0 ].max
           message = <<~MSG
             Heads up! We moved #{flagged_amount.to_i} shells from your recent ship payouts into escrow because you haven't finished voting yet.
 

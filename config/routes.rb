@@ -256,6 +256,8 @@ Rails.application.routes.draw do
   resources :votes, only: [ :new, :create ] do
     collection do
       get :locked
+      post "track_demo/:position", to: "votes#track_demo", as: :track_demo
+      post "track_repo/:position", to: "votes#track_repo", as: :track_repo
     end
   end
 
@@ -306,11 +308,31 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       get "users/me", to: "users#me"
-      resources :projects, only: [ :index, :show ]
+      resources :projects, only: [ :index, :show ] do
+        collection do
+          get :shipped
+        end
+      end
       resources :users, only: [ :index, :show ]
       resources :devlogs, only: [ :index, :show ]
       resources :comments, only: [ :index, :show ]
       resources :emotes, only: [ :show ]
+    end
+
+    namespace :v2 do
+      resources :projects, only: [ :index, :show ] do
+        collection do
+          get :search
+        end
+      end
+      resources :users, only: [ :index, :show ] do
+        collection do
+          get :search
+        end
+      end
+      resources :devlogs, only: [ :index, :show ]
+      resources :payouts, only: [ :index, :show ]
+      get "/", to: "base#index"
     end
   end
   get "api/check_user", to: "users#check_user"
@@ -371,6 +393,7 @@ Rails.application.routes.draw do
         post :refresh_hackatime
         post :grant_fraud_reviewer
         post :revoke_fraud_reviewer
+        post :flip
       end
     end
     resources :special_access_users, only: [ :index ]

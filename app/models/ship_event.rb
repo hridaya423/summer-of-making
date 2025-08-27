@@ -82,7 +82,7 @@ class ShipEvent < ApplicationRecord
   end
 
   def seconds_covered
-    devlogs_since_last.sum(:duration_seconds)
+    devlogs_since_last.capped_duration_seconds
   end
   # this is the hours covered by the ship event, not the total hours up to the ship event
   def hours_covered

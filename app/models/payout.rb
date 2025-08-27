@@ -23,6 +23,7 @@
 #  index_payouts_on_user_id                (user_id)
 #
 class Payout < ApplicationRecord
+  # NOTE Aug 23, 2025 IST: Escrow is deprecated for new payouts.
   belongs_to :payable, polymorphic: true
   belongs_to :user
 

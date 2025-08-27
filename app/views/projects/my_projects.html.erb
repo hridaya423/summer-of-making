@@ -46,6 +46,9 @@
                   <% votes_needed = latest_ship_event.votes_needed_for_payout %>
                   <% if current_user.votes.size < (20 * current_user.ship_events_count) %>
                       <p class="text-red-400">Your latest ship payout is escrowed until you vote <%= pluralize((20 * current_user.ship_events_count) - current_user.votes.size, 'more time') %>. Head to the voting page!</p>
+                  <% remaining = current_user.remaining_votes_to_ship %>
+                  <% if remaining > 0 %>
+                    <p class="text-red-400">Your latest payout is on hold — you need <%= pluralize(remaining, 'more vote') %> since your last ship to release your shells. <a href="<%= new_vote_path %>" class="underline text-blue-700 hover:text-blue-800">Start voting</a>.</p>
                   <% else %>
                     <p class="text-red-400">Your latest ship has received <%= current_votes %> out of 18 needed and needs <%= votes_needed %> more for payout. Hang tight!</p>
                   <% end %>

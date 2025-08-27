@@ -80,10 +80,11 @@ class User < ApplicationRecord
   scope :search, ->(query) {
     return all if query.blank?
 
-    query = "%#{query}%"
+    fuzzy_query = "%#{query}%".downcase
+    query = query.downcase
     where(
-      "first_name ILIKE ? OR last_name ILIKE ? OR email ILIKE ? OR slack_id ILIKE ? OR display_name ILIKE ? OR identity_vault_id ILIKE ?",
-      query, query, query, query, query, query
+      "LOWER(first_name) ILIKE ? OR LOWER(last_name) ILIKE ? OR LOWER(email) ILIKE ? OR LOWER(slack_id) = ? OR LOWER(display_name) ILIKE ? OR identity_vault_id = ? OR LOWER(CONCAT(first_name, ' ', last_name)) ILIKE ?",
+      fuzzy_query, fuzzy_query, fuzzy_query, query, fuzzy_query, query, fuzzy_query
     )
   }
 
@@ -165,7 +166,7 @@ class User < ApplicationRecord
         email: email,
         user_info: user_info.to_h
       })
-      raise StandardError, "slack #{slack_id} has a fuck ass email? #{email.inspect}"
+      raise StandardError, "Slack ID #{slack_id} has an invalid email: #{email.inspect}"
     end
 
     User.create!(
@@ -357,7 +358,10 @@ class User < ApplicationRecord
     if should_ban && !is_banned
       ban_user!("hackatime_ban")
     elsif !should_ban && is_banned
-      unban_user!
+      r = activities.where(key: "ban_user").order(created_at: :desc).first
+      if r&.parameters&.dig("reason") == "hackatime_ban"
+        unban_user!
+      end
     end
 
     if projects.empty?
@@ -486,22 +490,35 @@ class User < ApplicationRecord
   end
 
   def votes_required_for_release
-    ship_events_count * 20
+    approved_count = ship_events
+      .joins(project: :ship_certifications)
+      .where(ship_certifications: { judgement: ShipCertification.judgements[:approved] })
+      .where.not(id: Payout.released.where(payable_type: "ShipEvent").select(:payable_id))
+      .count("ship_events.id")
+    [ approved_count, 1 ].min * 20
   end
 
   def has_met_voting_requirement?
-    votes.count >= votes_required_for_release
+    votes.active.count >= votes_required_for_release
+  end
+
+  def votes_since_last_ship_count
+    last_ship_time = ship_events.order(:created_at).last&.created_at
+    scope = votes.active
+    scope = scope.where("created_at > ?", last_ship_time) if last_ship_time
+    scope.count
+  end
+
+  def remaining_votes_to_ship
+    [ 20 - votes_since_last_ship_count, 0 ].max
   end
 
   def release_escrowed_payouts_if_eligible!
+    # NOTE Aug 23, 2025 IST: Escrow is deprecated for new payouts.
     return false unless has_met_voting_requirement?
 
     updated = payouts.where(escrowed: true).update_all(escrowed: false)
     updated > 0
-  end
-
-  def ship_events_count
-    projects.joins(:ship_events).count("ship_events.id")
   end
 
   # Avo backtraces
@@ -665,6 +682,10 @@ class User < ApplicationRecord
 
   def completed_todo?
     devlogs.any? && projects.any? && votes.any? && shop_orders.joins(:shop_item).where.not(shop_items: { type: "ShopItem::FreeStickers" }).any?
+  end
+
+  def sinkening_participation?
+    devlogs.exists?(for_sinkening: true) || ship_events.exists?(for_sinkening: true)
   end
 
   private

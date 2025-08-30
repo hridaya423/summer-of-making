@@ -106,6 +106,12 @@ production:
     concurrency: 1
     description: "Upload approved YSWS from the SoM to the Unified db"
 
+  check_ysws_duplicates:
+    class: YswsReview::CheckDuplicatesJob
+    schedule: every 5 minutes
+    concurrency: 1
+    description: "Check for duplicate YSWS submissions across different programs"
+
   mole_batch_guess_project_categorization:
     class: Mole::BatchGuessProjectCategorizationJob
     schedule: every 12 minutes # 5 times per hour

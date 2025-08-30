@@ -358,7 +358,10 @@ class User < ApplicationRecord
     if should_ban && !is_banned
       ban_user!("hackatime_ban")
     elsif !should_ban && is_banned
-      unban_user!
+      r = activities.where(key: "ban_user").order(created_at: :desc).first
+      if r&.parameters&.dig("reason") == "hackatime_ban"
+        unban_user!
+      end
     end
 
     if projects.empty?
@@ -679,6 +682,10 @@ class User < ApplicationRecord
 
   def completed_todo?
     devlogs.any? && projects.any? && votes.any? && shop_orders.joins(:shop_item).where.not(shop_items: { type: "ShopItem::FreeStickers" }).any?
+  end
+
+  def sinkening_participation?
+    devlogs.exists?(for_sinkening: true) || ship_events.exists?(for_sinkening: true)
   end
 
   private

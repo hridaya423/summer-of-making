@@ -13,7 +13,7 @@
 #  hackatime_project_keys :string           default([]), is an Array
 #  is_deleted             :boolean          default(FALSE)
 #  is_shipped             :boolean          default(FALSE)
-#  is_sinkening_ship      :boolean
+#  is_sinkening_ship      :boolean          default(FALSE)
 #  rating                 :integer
 #  readme_link            :string
 #  repo_link              :string
@@ -74,6 +74,7 @@ class Project < ApplicationRecord
 
   has_many :ship_certifications
   has_many :readme_certifications
+  has_many :shipwright_advices, class_name: "ShipwrightAdvice"
 
   has_many :won_votes, class_name: "Vote", foreign_key: "winning_project_id"
   has_many :vote_changes, dependent: :destroy

@@ -207,6 +207,11 @@ Rails.application.routes.draw do
   delete "/logout", to: "sessions#destroy", as: :logout
   delete "/stop_impersonating", to: "sessions#stop_impersonating", as: :stop_impersonating
 
+  # Development auto-login (only available in development)
+  if Rails.env.development?
+    get "/auth/dev_login", to: "sessions#auto_login_dev", as: :dev_auto_login
+  end
+
   get "/magic-link", to: "sessions#magic_link", as: :magic_link # For users signing in
   post "/explorpheus/magic-link", to: "magic_link#get_secret_magic_url" # For the welcome bot to fetch the magic link.
 
@@ -354,6 +359,12 @@ Rails.application.routes.draw do
     resources :view_analytics, only: [ :index ]
     resources :voting_dashboard, only: [ :index ]
     resources :payouts_dashboard, only: [ :index ]
+    resources :low_quality_dashboard, only: [ :index ] do
+      collection do
+        post :mark_low_quality
+        post :mark_ok
+      end
+    end
     resources :fraud_reports, only: [ :index, :show ] do
       member do
         get :resolve
@@ -411,6 +422,7 @@ Rails.application.routes.draw do
         post :place_on_hold
         post :take_off_hold
         post :mark_fulfilled
+        post :convert_to_preauth
       end
     end
     resources :shop_card_grants, only: [ :index, :show ]

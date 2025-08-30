@@ -94,7 +94,15 @@ class ProjectsController < ApplicationController
 
     @devlogs = @project.devlogs.sort_by(&:created_at).reverse
     @ship_events = @project.ship_events.sort_by(&:created_at).reverse
-    @timeline = (@devlogs + @ship_events).sort_by(&:created_at).reverse
+
+    # Include shipwright advice in timeline for project owner only
+    timeline_items = [ @devlogs, @ship_events ]
+    if current_user == @project.user
+      @shipwright_advices = @project.shipwright_advices.includes(:ship_certification).sort_by(&:created_at).reverse
+      timeline_items << @shipwright_advices
+    end
+
+    @timeline = timeline_items.flatten.sort_by(&:created_at).reverse
 
     @stonks = @project.stonks.sort_by(&:amount).reverse
     @latest_ship_certification = @project.ship_certifications.max_by(&:created_at)

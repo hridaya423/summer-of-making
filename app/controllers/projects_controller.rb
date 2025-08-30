@@ -94,7 +94,15 @@ class ProjectsController < ApplicationController
 
     @devlogs = @project.devlogs.sort_by(&:created_at).reverse
     @ship_events = @project.ship_events.sort_by(&:created_at).reverse
-    @timeline = (@devlogs + @ship_events).sort_by(&:created_at).reverse
+
+    # Include shipwright advice in timeline for project owner only
+    timeline_items = [ @devlogs, @ship_events ]
+    if current_user == @project.user
+      @shipwright_advices = @project.shipwright_advices.includes(:ship_certification).sort_by(&:created_at).reverse
+      timeline_items << @shipwright_advices
+    end
+
+    @timeline = timeline_items.flatten.sort_by(&:created_at).reverse
 
     @stonks = @project.stonks.sort_by(&:amount).reverse
     @latest_ship_certification = @project.ship_certifications.max_by(&:created_at)
@@ -626,9 +634,13 @@ class ProjectsController < ApplicationController
 
     ship_events_by_date.each_with_index do |ship_event, index|
       position = index + 1
-      payouts = ship_event.payouts.to_a
+      payouts = ship_event.payouts.where(escrowed: false).to_a
       payout_count = payouts.size
       payout_sum = payouts.sum(&:amount)
+
+      escrowed_payouts = ship_event.payouts.where(escrowed: true).to_a
+      escrow_count = escrowed_payouts.size
+      escrow_sum = escrowed_payouts.sum(&:amount)
 
       if index == 0
         devlogs_count = devlogs_by_date.count do |devlog|
@@ -645,6 +657,8 @@ class ProjectsController < ApplicationController
         position: position,
         payout_count: payout_count,
         payout_sum: payout_sum,
+        escrow_count: escrow_count,
+        escrow_sum: escrow_sum,
         devlogs_since_last_count: devlogs_count,
         hours_covered: helpers.format_seconds(ship_event.seconds_covered)
       }

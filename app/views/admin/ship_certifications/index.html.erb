@@ -19,6 +19,7 @@
   </h1>
   <div style="display: flex; gap: 1rem;">
     <%= link_to "View Logs", logs_admin_ship_certifications_path, class: "pill pill-gray", style: "text-decoration: none; padding: 0.5rem 1rem;" %>
+    <%= link_to "Low Quality Dashboard", admin_low_quality_dashboard_index_path, class: "pill pill-gray", style: "text-decoration: none; padding: 0.5rem 1rem;" %>
   </div>
 </div>
 
@@ -50,15 +51,15 @@
   </div>
 
   <div style="background: var(--color-card); padding: 1rem; border-radius: 8px; flex: 2;">
-    <h3>Reviewer Leaderboard</h3>
+    <h3>Shipwright Leaderboard</h3>
     <div id="b">
       <p style="margin-bottom: 0.5rem; font-size: 0.95em; color: var(--color-primary);">Past 7 days</p>
       <% if @leaderboard_week.any? %>
         <table style="width: 100%; font-size: 0.9rem;">
           <thead>
             <tr>
-              <th style="text-align: left;">Reviewer</th>
-              <th style="text-align: right;">Reviews</th>
+              <th style="text-align: left;">Shipwright</th>
+              <th style="text-align: right;">Ships inspected</th>
             </tr>
           </thead>
           <tbody>
@@ -81,8 +82,8 @@
         <table style="width: 100%; font-size: 0.9rem;">
           <thead>
             <tr>
-              <th style="text-align: left;">Reviewer</th>
-              <th style="text-align: right;">Reviews</th>
+              <th style="text-align: left;">Shipwright</th>
+              <th style="text-align: right;">Ships inspected</th>
             </tr>
           </thead>
           <tbody>
@@ -105,8 +106,8 @@
         <table style="width: 100%; font-size: 0.9rem;">
           <thead>
             <tr>
-              <th style="text-align: left;">Reviewer</th>
-              <th style="text-align: right;">Reviews</th>
+              <th style="text-align: left;">Shipwright</th>
+              <th style="text-align: right;">Ships inspected</th>
             </tr>
           </thead>
           <tbody>

@@ -14,6 +14,7 @@ production:
     class: UserHackatimeDataRefreshJob
     command: perform_unique
     queue: default
+    concurrency: 1
     schedule: every 15 minutes
     description: "Refresh Hackatime stats for all users with Hackatime enabled"
 
@@ -104,6 +105,12 @@ production:
     schedule: every 5 minutes
     concurrency: 1
     description: "Upload approved YSWS from the SoM to the Unified db"
+
+  check_ysws_duplicates:
+    class: YswsReview::CheckDuplicatesJob
+    schedule: every 5 minutes
+    concurrency: 1
+    description: "Check for duplicate YSWS submissions across different programs"
 
   mole_batch_guess_project_categorization:
     class: Mole::BatchGuessProjectCategorizationJob

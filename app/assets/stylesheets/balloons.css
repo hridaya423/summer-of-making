@@ -20,8 +20,6 @@
   transition: transform 0.1s ease-out;
 }
 
-
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .floating-balloon-container .balloon-card {

@@ -79,7 +79,9 @@
                             elsif !current_user.ysws_verified? && !item.is_a?(ShopItem::FreeStickers)
                               "Get your ID verified first!"
                             elsif user_balance >= regional_price
-                              if regional_price == 0
+                              if item.is_a?(ShopItem::FreeStickers)
+                                "Verify ID to acquire!"
+                              elsif regional_price == 0
                                 "Acquire!"
                               else
                                 "Buy for #{render_shells(regional_price)} shells!"

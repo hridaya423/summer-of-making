@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "set"
+
 # == Schema Information
 #
 # Table name: user_vote_queues
@@ -56,8 +58,23 @@ class UserVoteQueue < ApplicationRecord
   end
 
   def current_projects
+    voted_se_ids = user.votes.distinct.pluck(:ship_event_1_id, :ship_event_2_id).flatten.compact
+
     loop do
-      projects = current_ship_events.map(&:project).compact
+      ship_events = current_ship_events
+      if ship_events.any? && ShipEvent.where(id: ship_events.map(&:id), excluded_from_pool: true).exists?
+        advance_position!
+        next
+      end
+      # excluse low quality projects
+      if ship_events.any?
+        over_reported_ids = FraudReport.unresolved.where(suspect_type: "ShipEvent", suspect_id: ship_events.map(&:id)).where("reason LIKE ?", "LOW_QUALITY:%").group(:suspect_id).having("COUNT(*) >= 3").count.keys
+        if over_reported_ids.any? { |id| ship_events.map(&:id).include?(id) }
+          advance_position!
+          next
+        end
+      end
+      projects = ship_events.map(&:project).compact
 
       # because of scope, this should filter for deleted projects
       if projects.size < 2
@@ -67,6 +84,26 @@ class UserVoteQueue < ApplicationRecord
           refill_queue!(1)
         end
 
+        advance_position!
+        next
+      end
+
+      # skip if either ship event in the pair has already been voted on by the user
+      if current_pair && (voted_se_ids.include?(current_pair[0]) || voted_se_ids.include?(current_pair[1]))
+        next if replace_current_pair!
+        advance_position!
+        next
+      end
+
+      # voting queue might get stale and we might have two paid projects
+      if both_paid?(ship_events)
+        next if replace_current_pair!
+        advance_position!
+        next
+      end
+
+      # ensure total time covered for each project is greater than 0 seconds #ai hearbeats yoinked
+      if zero_total_time_covered?(ship_events)
         advance_position!
         next
       end
@@ -114,13 +151,19 @@ class UserVoteQueue < ApplicationRecord
   def refill_queue!(additional_pairs = QUEUE_SIZE)
     new_pairs = []
     existing_pairs = ship_event_pairs.dup
+    used_ship_event_ids = existing_pairs.flatten.to_set
 
     # i want to keep as is from the votes controller
     additional_pairs.times do
       pair = generate_matchup
-      if pair && !existing_pairs.include?(pair)
+      if pair &&
+         !existing_pairs.include?(pair) &&
+         !used_ship_event_ids.include?(pair[0]) &&
+         !used_ship_event_ids.include?(pair[1])
         new_pairs << pair
         existing_pairs << pair
+        used_ship_event_ids.add(pair[0])
+        used_ship_event_ids.add(pair[1])
       end
     end
 
@@ -152,11 +195,24 @@ class UserVoteQueue < ApplicationRecord
 
   private
 
+  def both_paid?(ship_events)
+    ship_events.all? { |se| se.payouts.exists? }
+  end
+
+  def zero_total_time_covered?(ship_events)
+    ids = ship_events.map(&:id)
+    totals_by_ship_event = Devlog
+      .joins("INNER JOIN ship_events ON devlogs.project_id = ship_events.project_id")
+      .where(ship_events: { id: ids })
+      .where("devlogs.created_at <= ship_events.created_at")
+      .group("ship_events.id")
+      .sum(:duration_seconds)
+
+    ship_events.any? { |se| (totals_by_ship_event[se.id] || 0) <= 0 }
+  end
+
   def generate_matchup
-    voted_ship_event_ids = user.votes
-                              .joins(vote_changes: { project: :ship_events })
-                              .distinct
-                              .pluck("ship_events.id")
+    voted_ship_event_ids = user.votes.distinct.pluck(:ship_event_1_id, :ship_event_2_id).flatten.compact
 
     projects_with_latest_ship = Project
                                   .joins(:ship_events)
@@ -179,8 +235,12 @@ class UserVoteQueue < ApplicationRecord
     eligible_projects = projects_with_latest_ship.to_a
 
     latest_ship_event_ids = eligible_projects.map { |project|
-      project.ship_events.max_by(&:created_at).id
-    }
+      project.ship_events.where(excluded_from_pool: false).max_by(&:created_at)&.id
+    }.compact
+
+    # don't generate matchups for low quality projects
+    flagged = FraudReport.unresolved.where(suspect_type: "ShipEvent", suspect_id: latest_ship_event_ids).where("reason LIKE ?", "LOW_QUALITY:%").group(:suspect_id).having("COUNT(*) >= 3").count.keys
+    latest_ship_event_ids -= flagged
 
     total_times_by_ship_event = Devlog
       .joins("INNER JOIN ship_events ON devlogs.project_id = ship_events.project_id")
@@ -307,5 +367,24 @@ class UserVoteQueue < ApplicationRecord
     end
 
     projects.first
+  end
+
+  def replace_current_pair!
+    return false if queue_exhausted? || current_pair.nil?
+
+    used_ship_event_ids = ship_event_pairs.each_with_index.flat_map { |p, idx| idx == current_position ? [] : p }.to_set
+
+    10.times do
+      pair = generate_matchup
+      next unless pair
+      next if used_ship_event_ids.include?(pair[0]) || used_ship_event_ids.include?(pair[1])
+
+      new_pairs = ship_event_pairs.dup
+      new_pairs[current_position] = pair
+      update!(ship_event_pairs: new_pairs, last_generated_at: Time.current)
+      return true
+    end
+
+    false
   end
 end

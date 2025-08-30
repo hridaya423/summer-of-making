@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_27_192404) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -339,9 +339,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "reason"
+    t.boolean "escrowed", default: false, null: false
     t.index ["created_at", "amount"], name: "index_payouts_on_created_at_and_amount"
     t.index ["created_at", "payable_type", "amount"], name: "index_payouts_on_date_type_amount"
     t.index ["created_at"], name: "index_payouts_on_created_at"
+    t.index ["escrowed"], name: "index_payouts_on_escrowed"
     t.index ["payable_type", "payable_id"], name: "index_payouts_on_payable"
     t.index ["payable_type"], name: "index_payouts_on_payable_type"
     t.index ["user_id"], name: "index_payouts_on_user_id"
@@ -435,7 +437,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "for_sinkening", default: false, null: false
+    t.boolean "excluded_from_pool", default: false, null: false
     t.index ["project_id"], name: "index_ship_events_on_project_id"
+  end
+
+  create_table "shipwright_advices", force: :cascade do |t|
+    t.bigint "project_id", null: false
+    t.bigint "ship_certification_id", null: false
+    t.text "description"
+    t.string "proof_link"
+    t.integer "status", default: 0
+    t.integer "shell_reward", default: 0
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id", "status"], name: "index_shipwright_advices_on_project_id_and_status"
+    t.index ["project_id"], name: "index_shipwright_advices_on_project_id"
+    t.index ["ship_certification_id"], name: "index_shipwright_advices_on_ship_certification_id"
   end
 
   create_table "shop_card_grants", force: :cascade do |t|
@@ -857,6 +875,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
     t.bigint "ship_event_2_id", null: false
     t.datetime "processed_at"
     t.text "ai_feedback"
+    t.boolean "is_low_quality", default: false, null: false
     t.index ["marked_invalid_at"], name: "index_votes_on_marked_invalid_at"
     t.index ["marked_invalid_by_id"], name: "index_votes_on_marked_invalid_by_id"
     t.index ["project_1_id"], name: "index_votes_on_project_1_id"
@@ -885,7 +904,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
     t.bigint "project_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "reviewer_id"
     t.index ["project_id"], name: "index_ysws_review_submissions_on_project_id", unique: true
+    t.index ["reviewer_id"], name: "index_ysws_review_submissions_on_reviewer_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -908,6 +929,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
   add_foreign_key "ship_certifications", "users", column: "reviewer_id"
   add_foreign_key "ship_event_feedbacks", "ship_events"
   add_foreign_key "ship_events", "projects"
+  add_foreign_key "shipwright_advices", "projects"
+  add_foreign_key "shipwright_advices", "ship_certifications"
   add_foreign_key "shop_card_grants", "shop_items"
   add_foreign_key "shop_card_grants", "users"
   add_foreign_key "shop_orders", "shop_card_grants"
@@ -944,4 +967,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_11_150103) do
   add_foreign_key "ysws_review_devlog_approvals", "devlogs"
   add_foreign_key "ysws_review_devlog_approvals", "users"
   add_foreign_key "ysws_review_submissions", "projects"
+  add_foreign_key "ysws_review_submissions", "users", column: "reviewer_id"
 end

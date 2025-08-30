@@ -142,6 +142,15 @@ module Admin
       @ship_certification = ShipCertification.find(params[:id])
 
       if @ship_certification.update(ship_certification_params)
+        # Create improvement suggestion if provided
+        if params[:improvement_suggestion].present?
+          ShipwrightAdvice.create!(
+            project: @ship_certification.project,
+            ship_certification: @ship_certification,
+            description: params[:improvement_suggestion].strip
+          )
+        end
+
         redirect_to admin_ship_certifications_path, notice: "Ship certification updated successfully."
       else
         render :edit, status: :unprocessable_entity

@@ -37,6 +37,8 @@ module Admin
       ).find(params[:id])
 
       @hackatime_id = fetch_hackatime(@user.email)
+
+      @flipper_flags = Flipper.features
     end
 
     def internal_notes
@@ -54,7 +56,7 @@ module Admin
       unless parameters[:reason].present?
         return redirect_to(admin_user_path(@user), notice: "Please provide a reason!")
       end
-      @payout = @user.payouts.build(parameters.merge(payable: @user))
+      @payout = @user.payouts.build(parameters.merge(payable: @user, escrowed: false))
 
       begin
         @payout.save!
@@ -138,6 +140,17 @@ module Admin
     def unban_user
       @user.unban_user!
       flash[:success] = "//undoing"
+      redirect_to admin_user_path(@user)
+    end
+
+    def flip
+      if params[:state] == "true"
+        Flipper.enable_actor(params[:flag], @user)
+      else
+        Flipper.disable_actor(params[:flag], @user)
+      end
+      @user.create_activity("flip", params: { flag: params[:flag], state: params[:state] })
+      flash[:success] = "gotcha, flipped #{params[:flag]} to #{params[:state]}"
       redirect_to admin_user_path(@user)
     end
 

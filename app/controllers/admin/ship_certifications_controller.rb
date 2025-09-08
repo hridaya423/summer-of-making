@@ -167,14 +167,14 @@ module Admin
           # Determine multiplier based on weekly leaderboard position
           position = weekly_positions[user_key]
           multiplier = ShipReviewerMultiplierService.calculate_multiplier_for_position(position)
-          effective_rate = ShipReviewerMultiplierService.calculate_effective_rate(position)
+          shells_per_review = ShipReviewerMultiplierService::BASE_SHELLS_PER_REVIEW  # Always show 0.5
           total_earned = ShipReviewerMultiplierService.calculate_total_earned(stat.review_count.to_i, position)
           total_paid = stat.total_paid.to_f
           total_owed = [ total_earned - total_paid, 0 ].max
           pending_amount = stat.pending_amount.to_f
           review_count = stat.review_count.to_i
 
-          [ name, email, total_owed, effective_rate, pending_amount, multiplier ]
+          [ name, email, total_owed, shells_per_review, pending_amount, multiplier ]
         end
     end
 

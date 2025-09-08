@@ -105,87 +105,28 @@ module Admin
       est_zone = ActiveSupport::TimeZone.new("America/New_York")
       current_est = Time.current.in_time_zone(est_zone)
       week_start = current_est.beginning_of_week(:sunday)
-      ship_cert_counts = User.joins("INNER JOIN ship_certifications ON users.id = ship_certifications.reviewer_id")
+      @leaderboard_week = User.joins("INNER JOIN ship_certifications ON users.id = ship_certifications.reviewer_id")
         .where.not(ship_certifications: { reviewer_id: nil })
         .where("ship_certifications.updated_at >= ?", week_start)
         .group("users.id", "users.display_name", "users.email")
-        .pluck("users.id", "users.display_name", "users.email", "COUNT(ship_certifications.id)")
+        .order("COUNT(ship_certifications.id) DESC")
+        .limit(20)
+        .pluck("users.display_name", "users.email", "COUNT(ship_certifications.id)")
 
-      fraud_report_counts = User.joins("INNER JOIN fraud_reports ON users.id = fraud_reports.resolved_by_id")
-        .where.not(fraud_reports: { resolved_by_id: nil })
-        .where("fraud_reports.resolved_at >= ?", week_start)
-        .group("users.id", "users.display_name", "users.email")
-        .pluck("users.id", "users.display_name", "users.email", "COUNT(fraud_reports.id)")
-
-      # Combine counts by user
-      combined_counts = {}
-      ship_cert_counts.each { |id, name, email, count| combined_counts[id] = { name: name, email: email, count: count } }
-      fraud_report_counts.each do |id, name, email, count|
-        if combined_counts[id]
-          combined_counts[id][:count] += count
-        else
-          combined_counts[id] = { name: name, email: email, count: count }
-        end
-      end
-
-      @leaderboard_week = combined_counts.values
-        .sort_by { |user| -user[:count] }
-        .first(20)
-        .map { |user| [user[:name], user[:email], user[:count]] }
-
-      ship_cert_counts_day = User.joins("INNER JOIN ship_certifications ON users.id = ship_certifications.reviewer_id")
+      @leaderboard_day = User.joins("INNER JOIN ship_certifications ON users.id = ship_certifications.reviewer_id")
         .where.not(ship_certifications: { reviewer_id: nil })
         .where("ship_certifications.updated_at >= ?", 24.hours.ago)
         .group("users.id", "users.display_name", "users.email")
-        .pluck("users.id", "users.display_name", "users.email", "COUNT(ship_certifications.id)")
+        .order("COUNT(ship_certifications.id) DESC")
+        .limit(20)
+        .pluck("users.display_name", "users.email", "COUNT(ship_certifications.id)")
 
-      fraud_report_counts_day = User.joins("INNER JOIN fraud_reports ON users.id = fraud_reports.resolved_by_id")
-        .where.not(fraud_reports: { resolved_by_id: nil })
-        .where("fraud_reports.resolved_at >= ?", 24.hours.ago)
-        .group("users.id", "users.display_name", "users.email")
-        .pluck("users.id", "users.display_name", "users.email", "COUNT(fraud_reports.id)")
-
-      # Combine counts by user for daily leaderboard
-      combined_counts_day = {}
-      ship_cert_counts_day.each { |id, name, email, count| combined_counts_day[id] = { name: name, email: email, count: count } }
-      fraud_report_counts_day.each do |id, name, email, count|
-        if combined_counts_day[id]
-          combined_counts_day[id][:count] += count
-        else
-          combined_counts_day[id] = { name: name, email: email, count: count }
-        end
-      end
-
-      @leaderboard_day = combined_counts_day.values
-        .sort_by { |user| -user[:count] }
-        .first(20)
-        .map { |user| [user[:name], user[:email], user[:count]] }
-
-      ship_cert_counts_all = User.joins("INNER JOIN ship_certifications ON users.id = ship_certifications.reviewer_id")
+      @leaderboard_all = User.joins("INNER JOIN ship_certifications ON users.id = ship_certifications.reviewer_id")
         .where.not(ship_certifications: { reviewer_id: nil })
         .group("users.id", "users.display_name", "users.email")
-        .pluck("users.id", "users.display_name", "users.email", "COUNT(ship_certifications.id)")
-
-      fraud_report_counts_all = User.joins("INNER JOIN fraud_reports ON users.id = fraud_reports.resolved_by_id")
-        .where.not(fraud_reports: { resolved_by_id: nil })
-        .group("users.id", "users.display_name", "users.email")
-        .pluck("users.id", "users.display_name", "users.email", "COUNT(fraud_reports.id)")
-
-      # Combine counts by user for all-time leaderboard
-      combined_counts_all = {}
-      ship_cert_counts_all.each { |id, name, email, count| combined_counts_all[id] = { name: name, email: email, count: count } }
-      fraud_report_counts_all.each do |id, name, email, count|
-        if combined_counts_all[id]
-          combined_counts_all[id][:count] += count
-        else
-          combined_counts_all[id] = { name: name, email: email, count: count }
-        end
-      end
-
-      @leaderboard_all = combined_counts_all.values
-        .sort_by { |user| -user[:count] }
-        .first(20)
-        .map { |user| [user[:name], user[:email], user[:count]] }
+        .order("COUNT(ship_certifications.id) DESC")
+        .limit(20)
+        .pluck("users.display_name", "users.email", "COUNT(ship_certifications.id)")
 
       @decided_last_24h = ShipCertification.where.not(judgement: :pending)
         .where("ship_certifications.updated_at >= ?", 24.hours.ago)
@@ -223,24 +164,17 @@ module Admin
           email = stat.email
           user_key = name || email
 
-          # Determine payment rate based on weekly leaderboard position
+          # Determine multiplier based on weekly leaderboard position
           position = weekly_positions[user_key]
-          shells_per_review = case position
-          when 1..3
-            1.5  # 1st to 3rd place
-          when 4..7
-            1.0  # 4th to 7th place
-          else
-            0.75 # 8th place onward
-          end
-
-          total_earned = stat.review_count.to_i * shells_per_review
+          multiplier = ShipReviewerMultiplierService.calculate_multiplier_for_position(position)
+          shells_per_review = ShipReviewerMultiplierService::BASE_SHELLS_PER_REVIEW  # Always show 0.5
+          total_earned = ShipReviewerMultiplierService.calculate_total_earned(stat.review_count.to_i, position)
           total_paid = stat.total_paid.to_f
           total_owed = [ total_earned - total_paid, 0 ].max
           pending_amount = stat.pending_amount.to_f
           review_count = stat.review_count.to_i
 
-          [ name, email, total_owed, shells_per_review, pending_amount ]
+          [ name, email, total_owed, shells_per_review, pending_amount, multiplier ]
         end
     end
 
@@ -293,32 +227,13 @@ module Admin
       # Average decision time
       @avg_turnaround = calc_avg_turnaround
 
-      # Leaderboard - reviewers by number of certifications and fraud reports resolved
-      ship_cert_counts_logs = User.joins("INNER JOIN ship_certifications ON users.id = ship_certifications.reviewer_id")
-                                 .where.not(ship_certifications: { reviewer_id: nil })
-                                 .group("users.id", "users.display_name", "users.email")
-                                 .pluck("users.id", "users.display_name", "users.email", "COUNT(ship_certifications.id)")
-
-      fraud_report_counts_logs = User.joins("INNER JOIN fraud_reports ON users.id = fraud_reports.resolved_by_id")
-                                    .where.not(fraud_reports: { resolved_by_id: nil })
-                                    .group("users.id", "users.display_name", "users.email")
-                                    .pluck("users.id", "users.display_name", "users.email", "COUNT(fraud_reports.id)")
-
-      # Combine counts by user for logs leaderboard
-      combined_counts_logs = {}
-      ship_cert_counts_logs.each { |id, name, email, count| combined_counts_logs[id] = { name: name, email: email, count: count } }
-      fraud_report_counts_logs.each do |id, name, email, count|
-        if combined_counts_logs[id]
-          combined_counts_logs[id][:count] += count
-        else
-          combined_counts_logs[id] = { name: name, email: email, count: count }
-        end
-      end
-
-      @leaderboard = combined_counts_logs.values
-        .sort_by { |user| -user[:count] }
-        .first(10)
-        .map { |user| [user[:name], user[:email], user[:count]] }
+      # Leaderboard - reviewers by number of certifications reviewed
+      @leaderboard = User.joins("INNER JOIN ship_certifications ON users.id = ship_certifications.reviewer_id")
+                         .where.not(ship_certifications: { reviewer_id: nil })
+                         .group("users.id", "users.display_name", "users.email")
+                         .order("COUNT(ship_certifications.id) DESC")
+                         .limit(10)
+                         .pluck("users.display_name", "users.email", "COUNT(ship_certifications.id)")
     end
 
     private

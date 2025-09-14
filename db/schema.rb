@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_03_171043) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_13_210400) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -248,9 +248,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_03_171043) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "last_hackatime_time"
-    t.integer "seconds_coded"
     t.integer "likes_count", default: 0, null: false
     t.integer "comments_count", default: 0, null: false
+    t.integer "seconds_coded"
     t.datetime "hackatime_pulled_at"
     t.integer "views_count", default: 0, null: false
     t.integer "duration_seconds", default: 0, null: false
@@ -370,12 +370,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_03_171043) do
 
   create_table "project_languages", force: :cascade do |t|
     t.bigint "project_id", null: false
-    t.json "language_stats", default: {}, null: false
+    t.json "old_language_stats", default: {}, null: false
     t.integer "status", default: 0, null: false
     t.text "error_message"
     t.datetime "last_synced_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "language_stats", default: "{}"
+    t.index ["language_stats"], name: "index_project_languages_on_language_stats", using: :gin
     t.index ["last_synced_at"], name: "index_project_languages_on_last_synced_at"
     t.index ["project_id"], name: "index_project_languages_on_project_id_unique", unique: true
     t.index ["status"], name: "index_project_languages_on_status"
@@ -403,8 +405,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_03_171043) do
     t.integer "views_count", default: 0, null: false
     t.float "x"
     t.float "y"
-    t.boolean "is_sinkening_ship"
+    t.boolean "is_sinkening_ship", default: false
+    t.datetime "magicked_at"
+    t.integer "ship_events_count", default: 0, null: false
+    t.integer "followers_count", default: 0, null: false
+    t.index ["followers_count"], name: "index_projects_on_followers_count"
     t.index ["is_shipped"], name: "index_projects_on_is_shipped"
+    t.index ["ship_events_count"], name: "index_projects_on_ship_events_count"
     t.index ["user_id"], name: "index_projects_on_user_id"
     t.index ["views_count"], name: "index_projects_on_views_count"
     t.index ["x", "y"], name: "index_projects_on_x_and_y"
@@ -543,6 +550,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_03_171043) do
     t.boolean "enabled"
     t.integer "site_action"
     t.text "hcb_preauthorization_instructions"
+    t.integer "sale_percentage"
+    t.date "unlock_on"
+    t.boolean "special", default: false, null: false
+    t.boolean "campfire_only", default: true, null: false
+    t.boolean "advent_announced", default: false, null: false
+    t.index ["enabled", "enabled_us", "enabled_eu", "enabled_in", "enabled_ca", "enabled_au", "enabled_xx"], name: "idx_shop_items_regional_enabled"
+    t.index ["enabled", "requires_black_market", "ticket_cost"], name: "idx_shop_items_enabled_black_market_price"
+    t.index ["type", "enabled"], name: "idx_shop_items_type_enabled"
+    t.index ["unlock_on"], name: "index_shop_items_on_unlock_on"
     t.check_constraint "hacker_score >= 0 AND hacker_score <= 100", name: "hacker_score_percentage_check"
   end
 
@@ -567,7 +583,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_03_171043) do
     t.string "fulfilled_by"
     t.bigint "warehouse_package_id"
     t.index ["shop_card_grant_id"], name: "index_shop_orders_on_shop_card_grant_id"
+    t.index ["shop_item_id", "aasm_state", "quantity"], name: "idx_shop_orders_item_state_qty"
+    t.index ["shop_item_id", "aasm_state"], name: "idx_shop_orders_stock_calc"
     t.index ["shop_item_id"], name: "index_shop_orders_on_shop_item_id"
+    t.index ["user_id", "shop_item_id", "aasm_state"], name: "idx_shop_orders_user_item_state"
+    t.index ["user_id", "shop_item_id"], name: "idx_shop_orders_user_item_unique"
     t.index ["user_id"], name: "index_shop_orders_on_user_id"
     t.index ["warehouse_package_id"], name: "index_shop_orders_on_warehouse_package_id"
   end
@@ -583,7 +603,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_03_171043) do
   end
 
   create_table "sinkening_settings", force: :cascade do |t|
-    t.float "intensity"
+    t.float "intensity", default: 1.0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "slack_story_url"
@@ -780,6 +800,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_03_171043) do
     t.index ["user_id"], name: "index_tutorial_progresses_on_user_id"
   end
 
+  create_table "user_advent_stickers", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "shop_item_id", null: false
+    t.bigint "devlog_id", null: false
+    t.date "earned_on", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["devlog_id"], name: "index_user_advent_stickers_on_devlog_id"
+    t.index ["earned_on"], name: "index_user_advent_stickers_on_earned_on"
+    t.index ["shop_item_id"], name: "index_user_advent_stickers_on_shop_item_id"
+    t.index ["user_id", "shop_item_id"], name: "index_user_advent_stickers_on_user_id_and_shop_item_id", unique: true
+    t.index ["user_id"], name: "index_user_advent_stickers_on_user_id"
+  end
+
   create_table "user_badges", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "badge_key", null: false
@@ -851,6 +885,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_03_171043) do
     t.jsonb "shenanigans_state", default: {}
     t.boolean "is_banned", default: false
     t.boolean "fraud_team_member", default: false, null: false
+    t.string "badges", default: [], array: true
+    t.integer "projects_count", default: 0, null: false
+    t.integer "devlogs_count", default: 0, null: false
+    t.integer "votes_count", default: 0, null: false
+    t.integer "ship_events_count", default: 0, null: false
+    t.index ["projects_count"], name: "index_users_on_projects_count"
+    t.index ["ship_events_count"], name: "index_users_on_ship_events_count"
+    t.index ["votes_count"], name: "index_users_on_votes_count"
   end
 
   create_table "versions", force: :cascade do |t|
@@ -997,6 +1039,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_03_171043) do
   add_foreign_key "timer_sessions", "projects"
   add_foreign_key "timer_sessions", "users"
   add_foreign_key "tutorial_progresses", "users"
+  add_foreign_key "user_advent_stickers", "devlogs"
+  add_foreign_key "user_advent_stickers", "shop_items"
+  add_foreign_key "user_advent_stickers", "users"
   add_foreign_key "user_badges", "users"
   add_foreign_key "user_hackatime_data", "users"
   add_foreign_key "user_profiles", "users"

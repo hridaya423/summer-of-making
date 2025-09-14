@@ -231,7 +231,7 @@
             value: ((@shop_order.shop_item.usd_cost || 0) * @shop_order.quantity).to_f,
             step: 0.01,
             style: "width: 100%; padding: 0.5em; border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-darker); color: var(--color-text);" %>
-        <small style="color: var(--color-muted);">recommended: $<%= (@shop_order.shop_item.usd_cost * @shop_order.quantity).to_f %></small>
+        <small style="color: var(--color-muted);">recommended: $<%= ((@shop_order.shop_item.usd_cost || 0) * @shop_order.quantity).to_f %></small>
       </div>
 
       <div style="margin-top: 2em; display: flex; gap: 1em;">

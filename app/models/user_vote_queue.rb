@@ -232,7 +232,15 @@ class UserVoteQueue < ApplicationRecord
   private
 
   def both_paid?(ship_events)
-    ship_events.all? { |se| se.payouts.exists? }
+    ids = ship_events.map(&:id)
+    return false if ids.empty?
+
+    paid_ids = Payout.where(payable_type: "ShipEvent", payable_id: ids)
+                     .distinct
+                     .pluck(:payable_id)
+                     .to_set
+
+    ship_events.all? { |se| paid_ids.include?(se.id) }
   end
 
   def zero_total_time_covered?(ship_events)
@@ -253,38 +261,29 @@ class UserVoteQueue < ApplicationRecord
     # Exclude tutorial pair from regular voting
     excluded_ship_event_ids = voted_ship_event_ids + TUTORIAL_PAIR
 
-    projects_with_latest_ship = Project
-                                  .joins(:ship_events)
-                                  .joins(:ship_certifications)
-                                  .where(ship_certifications: { judgement: :approved })
-                                  .where.not(user_id: user_id)
-                                  .where(
-                                    ship_events: {
-                                      id: ShipEvent.select("MAX(ship_events.id)")
-                                                  .where("ship_events.project_id = projects.id")
-                                                  .group("ship_events.project_id")
-                                                  .where.not(id: excluded_ship_event_ids)
-                                    }
-                                  )
-                                  .distinct
+    latest_eligible = ShipEvent
+                        .joins(project: :ship_certifications)
+                        .where(ship_certifications: { judgement: :approved })
+                        .where.not(projects: { user_id: user_id })
+                        .where(excluded_from_pool: false)
+                        .where.not(id: excluded_ship_event_ids)
+                        .select("DISTINCT ON (ship_events.project_id) ship_events.id, ship_events.project_id, ship_events.created_at")
+                        .order("ship_events.project_id, ship_events.id DESC")
+
     # a pretty neat way to avoid count on thousdand of recrods :)
-    project_ids = projects_with_latest_ship.limit(2).pluck(:id)
-    return nil if project_ids.length < 2
+    return nil unless latest_eligible.offset(1).exists?
 
-    eligible_projects = projects_with_latest_ship.to_a
+    rows = latest_eligible.pluck(:project_id, :id, :created_at)
 
-    latest_by_project = ShipEvent.where(project_id: eligible_projects.map(&:id), excluded_from_pool: false)
-                                 .group(:project_id)
-                                 .maximum(:id)
+    latest_by_project = {}
+    ship_dates_by_project = {}
+    rows.each do |project_id, ship_event_id, created_at|
+      latest_by_project[project_id] = ship_event_id
+      ship_dates_by_project[project_id] = created_at
+    end
 
-    latest_ship_event_ids = latest_by_project.values.compact
-
-    # Exclude tutorial pair from regular voting
-    latest_ship_event_ids -= TUTORIAL_PAIR
-
-    # don't generate matchups for low quality projects
-    flagged = FraudReport.unresolved.where(suspect_type: "ShipEvent", suspect_id: latest_ship_event_ids).where("reason LIKE ?", "LOW_QUALITY:%").group(:suspect_id).having("COUNT(*) >= 3").count.keys
-    latest_ship_event_ids -= flagged
+    eligible_project_rows = Project.where(id: latest_by_project.keys).pluck(:id, :user_id, :repo_link)
+    latest_ship_event_ids = latest_by_project.values
 
     total_times_by_ship_event = Devlog
       .joins("INNER JOIN ship_events ON devlogs.project_id = ship_events.project_id")
@@ -298,19 +297,20 @@ class UserVoteQueue < ApplicationRecord
                      .pluck(:payable_id)
                      .to_set
 
-    projects_with_time = eligible_projects.map do |project|
-      latest_id = latest_by_project[project.id]
+    projects_with_time = eligible_project_rows.map do |project_id, project_user_id, project_repo_link|
+      latest_id = latest_by_project[project_id]
       next unless latest_id
-      ship_event = ShipEvent.new(id: latest_id) # placeholder object to carry id/date when needed
       total_time_seconds = total_times_by_ship_event[latest_id] || 0
       is_paid = paid_ids.include?(latest_id)
 
       {
-        project: project,
+        project_id: project_id,
+        user_id: project_user_id,
+        repo_link: project_repo_link,
         total_time: total_time_seconds,
-        ship_event: ship_event,
+        ship_event_id: latest_id,
         is_paid: is_paid,
-        ship_date: project.ship_events.maximum(:created_at)
+        ship_date: ship_dates_by_project[project_id]
       }
     end
 
@@ -337,14 +337,14 @@ class UserVoteQueue < ApplicationRecord
 
       # pick a random unpaid project first
       if selected_projects.empty?
-        available_unpaid = unpaid_projects.select { |p| !used_user_ids.include?(p[:project].user_id) && !used_repo_links.include?(p[:project].repo_link) }
+        available_unpaid = unpaid_projects.select { |p| !used_user_ids.include?(p[:user_id]) && !used_repo_links.include?(p[:repo_link]) }
         first_project_data = weighted_sample(available_unpaid)
         next unless first_project_data
 
-        selected_projects << first_project_data[:project]
+        selected_projects << first_project_data[:project_id]
         selected_project_data << first_project_data
-        used_user_ids << first_project_data[:project].user_id
-        used_repo_links << first_project_data[:project].repo_link if first_project_data[:project].repo_link.present?
+        used_user_ids << first_project_data[:user_id]
+        used_repo_links << first_project_data[:repo_link] if first_project_data[:repo_link].present?
         first_time = first_project_data[:total_time]
 
         # find projects within the constraints (set to 30%)
@@ -352,18 +352,18 @@ class UserVoteQueue < ApplicationRecord
         max_time = first_time * 1.3
 
         compatible_projects = projects_with_time.select do |p|
-          !used_user_ids.include?(p[:project].user_id) &&
-          !used_repo_links.include?(p[:project].repo_link) &&
+          !used_user_ids.include?(p[:user_id]) &&
+          !used_repo_links.include?(p[:repo_link]) &&
           p[:total_time] >= min_time &&
           p[:total_time] <= max_time
         end
 
         if compatible_projects.any?
           second_project_data = weighted_sample(compatible_projects)
-          selected_projects << second_project_data[:project]
+          selected_projects << second_project_data[:project_id]
           selected_project_data << second_project_data
-          used_user_ids << second_project_data[:project].user_id
-          used_repo_links << second_project_data[:project].repo_link if second_project_data[:project].repo_link.present?
+          used_user_ids << second_project_data[:user_id]
+          used_repo_links << second_project_data[:repo_link] if second_project_data[:repo_link].present?
         else
           selected_projects.clear
           selected_project_data.clear
@@ -377,13 +377,13 @@ class UserVoteQueue < ApplicationRecord
     if selected_projects.size < 2 && unpaid_projects.any?
       first_project_data = weighted_sample(unpaid_projects)
       remaining_projects = projects_with_time.reject { |p|
-        p[:project].user_id == first_project_data[:project].user_id ||
-        (p[:project].repo_link.present? && p[:project].repo_link == first_project_data[:project].repo_link)
+        p[:user_id] == first_project_data[:user_id] ||
+        (p[:repo_link].present? && p[:repo_link] == first_project_data[:repo_link])
       }
 
       if remaining_projects.any?
         second_project_data = weighted_sample(remaining_projects)
-        selected_projects = [ first_project_data[:project], second_project_data[:project] ]
+        selected_projects = [ first_project_data[:project_id], second_project_data[:project_id] ]
         selected_project_data = [ first_project_data, second_project_data ]
       end
     end
@@ -391,8 +391,8 @@ class UserVoteQueue < ApplicationRecord
     return nil if selected_projects.size < 2
 
     # Return the ship event pair (normalized with smaller ID first)
-    ship_event_1_id = selected_project_data[0][:ship_event].id
-    ship_event_2_id = selected_project_data[1][:ship_event].id
+    ship_event_1_id = selected_project_data[0][:ship_event_id]
+    ship_event_2_id = selected_project_data[1][:ship_event_id]
 
     if ship_event_1_id > ship_event_2_id
       ship_event_1_id, ship_event_2_id = ship_event_2_id, ship_event_1_id

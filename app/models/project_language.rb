@@ -4,17 +4,19 @@
 #
 # Table name: project_languages
 #
-#  id             :bigint           not null, primary key
-#  error_message  :text
-#  language_stats :json             not null
-#  last_synced_at :datetime
-#  status         :integer          default("pending"), not null
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
-#  project_id     :bigint           not null
+#  id                 :bigint           not null, primary key
+#  error_message      :text
+#  language_stats     :jsonb
+#  last_synced_at     :datetime
+#  old_language_stats :json             not null
+#  status             :integer          default("pending"), not null
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  project_id         :bigint           not null
 #
 # Indexes
 #
+#  index_project_languages_on_language_stats     (language_stats) USING gin
 #  index_project_languages_on_last_synced_at     (last_synced_at)
 #  index_project_languages_on_project_id_unique  (project_id) UNIQUE
 #  index_project_languages_on_status             (status)

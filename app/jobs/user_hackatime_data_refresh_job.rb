@@ -2,7 +2,7 @@
 
 # This refreshes every user's Hackatime Project data.
 class UserHackatimeDataRefreshJob < ApplicationJob
-  limits_concurrency to: 1, key: -> { "UserHackatimeDataRefreshJob:singleton" }, duration: 2.hours, on_conflict: :block
+  limits_concurrency to: 1, key: -> { "UserHackatimeDataRefreshJob:singleton" }, duration: 2.hours, on_conflict: :discard
 
   queue_as :literally_whenever
 

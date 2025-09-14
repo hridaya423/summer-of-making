@@ -23,11 +23,13 @@ class TutorialProgressController < ApplicationController
       respond_to do |format|
         format.html { redirect_back(fallback_location: root_path) }
         format.json { render json: { success: true } }
+        format.any  { render json: { success: true } }
       end
     else
       respond_to do |format|
         format.html { redirect_back(fallback_location: root_path, alert: "Invalid step") }
         format.json { render json: { error: "Invalid step" }, status: :bad_request }
+        format.any  { render json: { error: "Invalid step" }, status: :bad_request }
       end
     end
   end
@@ -41,11 +43,13 @@ class TutorialProgressController < ApplicationController
       respond_to do |format|
         format.html { redirect_back(fallback_location: root_path) }
         format.json { render json: { success: true } }
+        format.any  { render json: { success: true } }
       end
     else
       respond_to do |format|
         format.html { redirect_back(fallback_location: root_path, alert: "Invalid step") }
         format.json { render json: { error: "Invalid step" }, status: :bad_request }
+        format.any  { render json: { error: "Invalid step" }, status: :bad_request }
       end
     end
   end

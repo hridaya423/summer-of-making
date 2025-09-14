@@ -10,11 +10,11 @@
 #     schedule: at 5am every day
 
 production:
-  30_minutes_hackatime_refresh:
-    class: UserHackatimeDataRefreshJob
-    queue: literally_whenever
-    schedule: every 30 minutes
-    description: "Refresh Hackatime stats for all users with Hackatime enabled"
+  # hourly_hackatime_refresh:
+  #   class: UserHackatimeDataRefreshJob
+  #   queue: literally_whenever
+  #   schedule: every hour
+  #   description: "Refresh Hackatime stats for all users with Hackatime enabled + DM people"
 
   # generate_stonk_reports:
   #   class: GenerateStonkReportJob
@@ -80,11 +80,11 @@ production:
     concurrency: 1
     description: "CSV-sync non-free-stickers orders into Airtable"
 
-  shop_process_letter_mail_orders:
-    class: Shop::ProcessLetterMailOrdersJob
-    schedule: every 2 days
-    concurrency: 1
-    description: "Process pending letter mail orders and send to Theseus som-fulfillment queue"
+  # shop_process_letter_mail_orders:
+  #   class: Shop::ProcessLetterMailOrdersJob
+  #   schedule: every 2 days
+  #   concurrency: 1
+  #   description: "Process pending letter mail orders and send to Theseus som-fulfillment queue"
 
   shop_process_warehouse_orders:
     class: Shop::ProcessWarehouseOrdersJob
@@ -118,6 +118,20 @@ production:
 
   sync_project_languages:
     class: SyncProjectLanguagesJob
-    schedule: every 5 minutes
+    schedule: every minute
     concurrency: 1
     description: "Sync GitHub language stats for projects under review"
+
+  cache_map_points:
+    class: Cache::MapPointsJob
+    schedule: every 30 minutes
+    args: [ { force: true } ]
+
+  cache_carousel_prizes:
+    class: Cache::CarouselPrizesJob
+    schedule: every 1 hour
+    args: [ { force: true } ]
+
+  update_badge_counter_caches:
+    class: User::UpdateBadgeCounterCachesJob
+    schedule: at 4am every day

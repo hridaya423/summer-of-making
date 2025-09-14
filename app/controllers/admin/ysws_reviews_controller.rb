@@ -29,6 +29,11 @@ module Admin
       @projects = base.where.not(id: reviewed_project_ids)
     end
 
+    # Apply language filtering
+    if params[:lang_filter].present?
+      @projects = apply_language_filter(@projects, params[:lang_filter])
+    end
+
     # Apply sorting
     case @sort_by
     when "random"
@@ -149,6 +154,49 @@ module Admin
     else
       redirect_to admin_ysws_reviews_path, alert: "No ship certification found for this project"
     end
+  end
+
+  private
+
+  def apply_language_filter(projects, filter_string)
+    terms = filter_string.split(" ").reject(&:blank?)
+    required_languages = []
+    excluded_languages = []
+
+    terms.each do |term|
+      clean_term = term.strip.downcase
+      if clean_term.start_with?("-")
+        excluded_languages << clean_term[1..]
+      elsif clean_term.start_with?("+")
+        required_languages << clean_term[1..]
+      else
+        required_languages << clean_term
+      end
+    end
+
+    # Build subquery for projects that match language criteria
+    # Only include projects with synced status and non-empty language stats
+    language_query = ProjectLanguage.where(status: :synced)
+                                    .where.not(language_stats: {})
+
+    # Filter by required languages
+    required_languages.each do |lang|
+      language_query = language_query.where(
+        "EXISTS (SELECT 1 FROM jsonb_object_keys(language_stats) AS key WHERE LOWER(key) = LOWER(?))",
+        lang
+      )
+    end
+
+    # Filter by excluded languages
+    excluded_languages.each do |lang|
+      language_query = language_query.where(
+        "NOT EXISTS (SELECT 1 FROM jsonb_object_keys(language_stats) AS key WHERE LOWER(key) = LOWER(?))",
+        lang
+      )
+    end
+
+    # Apply as a WHERE condition using project IDs
+    projects.where(id: language_query.select(:project_id))
   end
   end
 end

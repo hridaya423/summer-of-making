@@ -1,11 +1,11 @@
 class SyncProjectLanguagesJob < ApplicationJob
-  queue_as :default
+  queue_as :literally_whenever
 
   def perform
     Rails.logger.info "Starting ProjectLanguages sync job"
 
     # Find projects that need language syncing using the scope
-    projects_to_sync = Project.needs_language_sync.limit(10).to_a
+    projects_to_sync = Project.needs_language_sync.limit(25).to_a
 
     Rails.logger.info "Found #{projects_to_sync.count} projects to sync"
 

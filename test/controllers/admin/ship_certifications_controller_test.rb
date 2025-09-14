@@ -26,7 +26,7 @@ module Admin
 
       assert_response :success
       assert_not_nil assigns(:leaderboard_week)
-      
+
       # Check that the reviewer appears in the weekly leaderboard
       leaderboard_users = assigns(:leaderboard_week).map { |entry| entry[1] } # emails
       assert_includes leaderboard_users, @reviewer_user.email
@@ -54,7 +54,7 @@ module Admin
 
       assert_response :success
       assert_not_nil assigns(:leaderboard_week)
-      
+
       # Check that the reviewer appears in the weekly leaderboard for fraud report decision
       leaderboard_users = assigns(:leaderboard_week).map { |entry| entry[1] } # emails
       assert_includes leaderboard_users, @reviewer_user.email
@@ -90,7 +90,7 @@ module Admin
 
       assert_response :success
       assert_not_nil assigns(:leaderboard_week)
-      
+
       # Find the reviewer in the leaderboard and check their count
       reviewer_entry = assigns(:leaderboard_week).find { |entry| entry[1] == @reviewer_user.email }
       assert_not_nil reviewer_entry, "Reviewer should appear in weekly leaderboard"
@@ -127,7 +127,7 @@ module Admin
 
       assert_response :success
       assert_not_nil assigns(:leaderboard_all)
-      
+
       # Find the reviewer in the all-time leaderboard
       reviewer_entry = assigns(:leaderboard_all).find { |entry| entry[1] == @reviewer_user.email }
       assert_not_nil reviewer_entry, "Reviewer should appear in all-time leaderboard"
@@ -156,7 +156,7 @@ module Admin
 
       assert_response :success
       assert_not_nil assigns(:leaderboard)
-      
+
       # Check that fraud report decisions are included in logs leaderboard
       leaderboard_users = assigns(:leaderboard).map { |entry| entry[1] } # emails
       assert_includes leaderboard_users, @reviewer_user.email

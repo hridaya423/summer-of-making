@@ -40,7 +40,7 @@ class ShipReviewerPayoutRequest < ApplicationRecord
   scope :pending_requests, -> { where(status: :pending) }
 
   def self.calculate_amount_for_decisions(decisions_count)
-    (decisions_count / 2) * 0.5
+    decisions_count * ShipReviewerMultiplierService::BASE_SHELLS_PER_REVIEW
   end
 
   def approve!(approver)

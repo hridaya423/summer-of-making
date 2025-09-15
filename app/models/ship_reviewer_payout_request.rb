@@ -6,6 +6,7 @@
 #  amount          :decimal(, )
 #  approved_at     :datetime
 #  decisions_count :integer
+#  multiplier      :decimal(4, 2)    default(1.0)
 #  requested_at    :datetime
 #  status          :integer
 #  created_at      :datetime         not null

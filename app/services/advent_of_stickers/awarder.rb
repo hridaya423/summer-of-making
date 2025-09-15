@@ -31,7 +31,7 @@ module AdventOfStickers
       project_keys_string = keys.join(",")
       encoded_project_keys = URI.encode_www_form_component(project_keys_string)
       start_time_iso = day_start.utc.iso8601
-      url = "https://hackatime.hackclub.com/api/v1/users/#{user.slack_id}/stats?filter_by_project=#{encoded_project_keys}&start_date=#{start_time_iso}&features=projects&total_seconds=true"
+      url = "https://hackatime.hackclub.com/api/v1/users/#{user.slack_id}/stats?filter_by_project=#{encoded_project_keys}&start_date=#{start_time_iso}&features=projects&total_seconds=true&test_param=true"
 
       headers = { "RACK_ATTACK_BYPASS" => ENV["HACKATIME_BYPASS_KEYS"] }.compact
       response = Faraday.get(url, nil, headers)

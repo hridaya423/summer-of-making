@@ -411,6 +411,8 @@ Rails.application.routes.draw do
         end
       end
       resources :fulfillment_dashboard, only: [ :index ]
+      resources :voting_dashboard, only: [ :index ]
+      resources :payouts_dashboard, only: [ :index ]
       resources :shop_orders do
         collection do
           get :pending
@@ -470,8 +472,6 @@ Rails.application.routes.draw do
       mount Flipper::UI.app(Flipper), at: "flipper"
       # mount_avo
       resources :view_analytics, only: [ :index ]
-      resources :voting_dashboard, only: [ :index ]
-      resources :payouts_dashboard, only: [ :index ]
       resources :ship_reviewer_payout_requests, only: [ :index, :show ] do
         member do
           patch :approve

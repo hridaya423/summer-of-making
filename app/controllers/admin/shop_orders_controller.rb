@@ -46,6 +46,10 @@ module Admin
         base = base.where("frozen_address->>'country' ILIKE ?", "%#{params[:country]}%")
       end
 
+      if params[:item_type].present?
+        base = base.joins(:shop_item).where(shop_items: { type: params[:item_type] })
+      end
+
       case params[:sort]
       when "id_asc"
         base = base.order(id: :asc)
@@ -98,6 +102,24 @@ module Admin
 
     def show
       @activities = @shop_order.activities.order(created_at: :desc).includes(:owner)
+    end
+
+    def edit
+      authorize @shop_order
+    end
+
+    def update
+      authorize @shop_order
+      if @shop_order.update(shop_order_params)
+        @shop_order.create_activity("admin_edit", parameters: {
+          external_ref: @shop_order.external_ref,
+          address_updated: params[:shop_order][:address_attributes].present?
+        })
+        flash[:success] = "Order updated successfully!"
+        redirect_to [ :admin, @shop_order ]
+      else
+        render :edit
+      end
     end
 
     def internal_notes
@@ -155,7 +177,61 @@ module Admin
       redirect_to [ :admin, @shop_order ]
     end
 
+    def convert_to_preauth
+      amount_dollars = params[:amount_dollars].presence&.to_f || @shop_order.shop_item.usd_cost * @shop_order.quantity
+      amount_cents = (amount_dollars * 100).to_i
+      email = @shop_order.user.email
+
+      begin
+        grant_rec = ShopCardGrant.new(
+          user: @shop_order.user,
+          shop_item: @shop_order.shop_item
+        )
+
+        grant_rec.transaction do
+          grant_response = HCBService.create_card_grant(
+            email: email,
+            amount_cents: amount_cents,
+            purpose: "SOM: #{@shop_order.shop_item.name}",
+            instructions: "Hello, Please use this grant to buy a #{@shop_order.shop_item.name}. Got any questions or something to say? Contact @3kh0 on Slack, and I can help you there! Make sure you upload receipts once you are done otherwise bad things will happen... Once you have spent the money, and uploaded your receipt, please hit 'Return grant' and you are all set!"
+          )
+
+          grant_rec.hcb_grant_hashid = grant_response["id"]
+          grant_rec.expected_amount_cents = amount_cents
+          grant_rec.save!
+
+          latest_disbursement = grant_response.dig("disbursements", 0, "transaction_id")
+          memo = "[preauth grant] #{@shop_order.shop_item.name} for #{@shop_order.user.display_name}"
+
+          @shop_order.shop_card_grant = grant_rec
+          @shop_order.mark_fulfilled! "SCG #{grant_rec.id}", nil, "System"
+
+          if latest_disbursement
+            begin
+              HCBService.rename_transaction(hashid: latest_disbursement, new_memo: memo)
+            rescue => e
+              Honeybadger.notify(e)
+            end
+          end
+        end
+
+        @shop_order.create_activity("convert_to_preauth", parameters: { amount_dollars: amount_dollars, grant_id: grant_rec.id })
+        flash[:success] = "its done you lazy bum #{@shop_order.user.email}"
+      rescue => e
+        Honeybadger.notify(e)
+        flash[:error] = "dude stop being lazy: #{e.message}"
+      end
+
+      redirect_to [ :admin, @shop_order ]
+    end
+
     private
+
+    def shop_order_params
+      permitted = [ :external_ref ]
+      permitted << { frozen_address: [ :first_name, :last_name, :line_1, :line_2, :city, :state, :postal_code, :country, :phone_number ] } unless @shop_order&.fulfilled?
+      params.require(:shop_order).permit(*permitted)
+    end
 
     def group_all(scope)
       orders = scope.includes(:user, :shop_item).to_a

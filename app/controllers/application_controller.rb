@@ -133,7 +133,7 @@ class ApplicationController < ActionController::Base
     return false unless current_user
 
     current_user.ship_events
-                .where('ship_events.created_at > ?', brainrot_activation_time)
+                .where("ship_events.created_at > ?", brainrot_activation_time)
                 .any?
   end
 
@@ -148,23 +148,23 @@ class ApplicationController < ActionController::Base
   private
 
   def brainrot_activation_time
-    @brainrot_activation_time ||= Time.zone.parse('2025-09-15 11:00:00 EDT')
+    @brainrot_activation_time ||= Time.zone.parse("2025-09-15 11:00:00 EDT")
   end
 
   def brainrot_sounds
     [
-      '/brainrot/67.mp3',
-      '/brainrot/tung-tung-sahur.mp3',
-      '/brainrot/brr-brr-patapim.mp3',
-      '/brainrot/rizz.mp3',
-      '/brainrot/deathfort.mp3',
-      '/brainrot/jet2holiday.mp3',
-      '/brainrot/huh-cat.mp3',
-      '/brainrot/spongebob.mp3'
+      "/brainrot/67.mp3",
+      "/brainrot/tung-tung-sahur.mp3",
+      "/brainrot/brr-brr-patapim.mp3",
+      "/brainrot/rizz.mp3",
+      "/brainrot/deathfort.mp3",
+      "/brainrot/jet2holiday.mp3",
+      "/brainrot/huh-cat.mp3",
+      "/brainrot/spongebob.mp3"
     ]
   end
 
   def subway_surfers_video_url
-    'https://cdn.revid.ai/subway_surfers/LOW_RES/2.mp4'
+    "https://cdn.revid.ai/subway_surfers/LOW_RES/2.mp4"
   end
 end

@@ -15,7 +15,7 @@ class BrainrotController < ApplicationController
   def random_sound
     sounds = brainrot_config[:sounds]
     random_sound = sounds.sample
-    
+
     render json: {
       sound_url: random_sound,
       sounds_count: sounds.length

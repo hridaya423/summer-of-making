@@ -2,7 +2,6 @@
   <div class="hidden md:block fixed top-6 right-8 z-50 bg-[rgb(240,216,188)] text-orange-950 px-3 py-2 rounded-sm shadow-lg text-lg">
     <p><b>Brainrot Mode Active</b></p>
   </div>
-  
   <!-- Subway Surfers Popup Video - TS is part of my brainrot :) -->
   <div id="subway-popup" class="fixed bottom-4 right-4 z-50 hidden">
     <div id="subway-container" class="relative w-25 transition-all duration-300">
@@ -32,7 +31,6 @@
         console.log("No sound played this time.");
         return;
       } // This reduces the possibility of overlapping sounds
-      
       const randomSound = new Audio(brainrotSounds[Math.floor(Math.random() * brainrotSounds.length)]);
       randomSound.play().catch(function(error) {
         console.error("Error playing audio:", error);
@@ -98,7 +96,6 @@
           hoverCount = 0;
         }
       }
-
       closeBtn.addEventListener('click', hidePopup);
       resizeBtn.addEventListener('click', toggleSize);
       container.addEventListener('mouseenter', handleHover);

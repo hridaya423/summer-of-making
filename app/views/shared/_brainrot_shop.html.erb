@@ -37,9 +37,8 @@
             console.error("Error playing outro song:", error);
             enableSubmit(); // Enable button if audio fails
           });
-          
           hoverSoundPlayed = true;
-          setTimeout(enableSubmit, 15000); 
+          setTimeout(enableSubmit, 15000);
         }
       });
     }

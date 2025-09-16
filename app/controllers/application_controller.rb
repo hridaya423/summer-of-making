@@ -131,10 +131,16 @@ class ApplicationController < ActionController::Base
   # Brainrot mode helpers
   def brainrot_mode_active?
     return false unless current_user
-
-    current_user.ship_events
-                .where("ship_events.created_at > ?", brainrot_activation_time)
-                .any?
+    
+    session[:brainrot_active] == true
+  end
+  
+  def activate_brainrot_mode!
+    session[:brainrot_active] = true
+  end
+  
+  def deactivate_brainrot_mode!
+    session[:brainrot_active] = false
   end
 
   def brainrot_config

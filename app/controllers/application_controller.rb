@@ -166,7 +166,9 @@ class ApplicationController < ActionController::Base
       "/brainrot/deathfort.mp3",
       "/brainrot/jet2holiday.mp3",
       "/brainrot/huh-cat.mp3",
-      "/brainrot/spongebob.mp3"
+      "/brainrot/spongebob.mp3",
+      "/brainrot/vine-boom.mp3",
+      "/brainrot/outro-song.mp3"
     ]
   end
 

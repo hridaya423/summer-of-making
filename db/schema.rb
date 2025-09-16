@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_13_210400) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_16_171231) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -248,9 +248,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_13_210400) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "last_hackatime_time"
+    t.integer "seconds_coded"
     t.integer "likes_count", default: 0, null: false
     t.integer "comments_count", default: 0, null: false
-    t.integer "seconds_coded"
     t.datetime "hackatime_pulled_at"
     t.integer "views_count", default: 0, null: false
     t.integer "duration_seconds", default: 0, null: false
@@ -484,6 +484,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_13_210400) do
     t.integer "decisions_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "multiplier", precision: 4, scale: 2, default: "1.0"
     t.index ["approved_by_id"], name: "index_ship_reviewer_payout_requests_on_approved_by_id"
     t.index ["reviewer_id"], name: "index_ship_reviewer_payout_requests_on_reviewer_id"
   end

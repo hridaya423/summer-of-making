@@ -5,6 +5,7 @@
 #  id           :bigint           not null, primary key
 #  amount       :decimal(6, 2)
 #  escrowed     :boolean          default(FALSE), not null
+#  multiplier   :decimal(4, 2)    default(1.0)
 #  payable_type :string
 #  reason       :string
 #  created_at   :datetime         not null

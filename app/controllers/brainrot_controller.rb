@@ -2,6 +2,7 @@
 
 class BrainrotController < ApplicationController
   before_action :authenticate_user!
+  before_action :check_brainrot_feature_enabled
 
   # API endpoint to check brainrot status
   def status

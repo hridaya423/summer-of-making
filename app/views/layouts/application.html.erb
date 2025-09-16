@@ -65,6 +65,9 @@
   </head>
 
   <body class="min-h-[100dvh] font-national-park font-bold text-som-dark <%= user_signed_in? ? 'overflow-hidden' : '' %>">
+    <!-- Brainrot mode (shows on all pages when active) -->
+    <%= render 'shared/brainrot' %>
+    
     <!-- Hidden balloon SVG template for JavaScript balloons -->
     <div id="balloon-template" style="display: none;">
       <%= inline_svg "balloon.svg", width: "60", height: "80" %>

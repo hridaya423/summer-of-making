@@ -237,6 +237,10 @@ Rails.application.routes.draw do
   get "users/identity_vault_callback", to: "users#identity_vault_callback", as: :identity_vault_callback
   get "users/link_identity_vault", to: "users#link_identity_vault", as: :link_identity_vault
 
+  # Brainrot mode API endpoints
+  get "brainrot/status", to: "brainrot#status"
+  get "brainrot/random_sound", to: "brainrot#random_sound"
+
   # Tutorial
   get "tutorial/todo_modal", to: "tutorials#todo_modal"
 

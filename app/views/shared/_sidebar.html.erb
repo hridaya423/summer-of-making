@@ -149,8 +149,8 @@
         <li class="flex justify-start">
           <%= render C::Link.new(
             target: stt_path,
-            text: SecretThirdThing.tab_title,
-            icon: SecretThirdThing.tab_icon,
+            text: SecretThirdThing.tab_title || "Secret",
+            icon: SecretThirdThing.tab_icon || "🤫",
             large: true,
             animate_push: true,
             highlight: current_page?(stt_path),

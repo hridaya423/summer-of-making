@@ -14,6 +14,10 @@ class Projects::ShipsController < ApplicationController
     if (ship_event = ShipEvent.create(project: @project)).persisted?
       is_first_ship = current_user.projects.joins(:ship_events).count == 1
       ahoy.track "tutorial_step_first_project_shipped", user_id: current_user.id, project_id: @project.id, is_first_ship: is_first_ship
+      
+      # Activate brainrot mode for the user
+      activate_brainrot_mode!
+      
       redirect_to project_path(@project), notice: "Your project has been shipped!"
 
       message = "Congratulations on shipping your project! Now thy project shall fight for blood :ultrafastparrot:"

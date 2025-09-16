@@ -4,6 +4,7 @@ class ApplicationController < ActionController::Base
   include Pagy::Backend
   include PublicActivity::StoreController
   include Pundit::Authorization
+  include ActionView::Helpers::AssetUrlHelper
 
   before_action :set_paper_trail_whodunnit
 
@@ -20,6 +21,7 @@ class ApplicationController < ActionController::Base
   before_action :authenticate_user!
   before_action :check_if_banned
   before_action :fetch_hackatime_data_if_needed
+  before_action :auto_activate_brainrot_mode_if_eligible
   after_action :track_page_view
 
   helper_method :current_user, :user_signed_in?, :current_verification_status, :current_impersonator, :impersonating?, :current_user_has_badge?, :brainrot_mode_active?, :brainrot_config
@@ -149,6 +151,18 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  # If the user has shipped a project after the activation time, and the feature
+  # is enabled for them, automatically activate brainrot for this session.
+  def auto_activate_brainrot_mode_if_eligible
+    return unless current_user
+    return if session[:brainrot_active] == true
+    return unless Flipper.enabled?(:brainrot_mode, current_user)
+
+    if current_user.ship_events.where("ship_events.created_at >= ?", brainrot_activation_time).exists?
+      activate_brainrot_mode!
+    end
+  end
 
   def brainrot_activation_time
     @brainrot_activation_time ||= Time.zone.parse("2025-09-15 11:00:00 EDT")

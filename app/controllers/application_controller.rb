@@ -140,7 +140,6 @@ class ApplicationController < ActionController::Base
   def deactivate_brainrot_mode!
     session[:brainrot_active] = false
   end
-
   def brainrot_config
     {
       sounds: brainrot_sounds,

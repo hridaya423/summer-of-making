@@ -18,7 +18,7 @@
     <!-- Volume Metrics -->
     <div style="background: var(--color-card); padding: 1rem; border-radius: 8px; flex: 1;">
       <h3>Volume Trends</h3>
-      <p><strong>Reports This Week:</strong> 
+      <p><strong>Reports This Week:</strong>
         <span class="pill pill-dark"><%= @reports_current_week || 0 %></span>
         <% if (@wow_change || 0) != 0 %>
           <span style="font-size: 0.8em; color: <%= (@wow_change || 0) > 0 ? '#ff6b6b' : '#51cf66' %>;">
@@ -27,7 +27,7 @@
         <% end %>
       </p>
       <p><strong>Reports Last Week:</strong> <span class="pill pill-gray"><%= @reports_last_week || 0 %></span></p>
-      <p><strong>Reports This Month:</strong> 
+      <p><strong>Reports This Month:</strong>
         <span class="pill pill-dark"><%= @reports_current_month || 0 %></span>
         <% if (@mom_change || 0) != 0 %>
           <span style="font-size: 0.8em; color: <%= (@mom_change || 0) > 0 ? '#ff6b6b' : '#51cf66' %>;">
@@ -44,7 +44,7 @@
       <h3>Resolution Performance</h3>
       <p><strong>Resolved This Week:</strong> <span class="pill pill-green"><%= @resolved_current_week || 0 %></span></p>
       <p><strong>Resolved This Month:</strong> <span class="pill pill-green"><%= @resolved_current_month || 0 %></span></p>
-      <p><strong>Avg Resolution Time:</strong> 
+      <p><strong>Avg Resolution Time:</strong>
         <span style="font-weight: bold;">
           <% avg_hours = (@avg_resolution_time_hours || 0) %>
           <% if avg_hours >= 24 %>
@@ -56,7 +56,7 @@
           <% end %>
         </span>
       </p>
-      <p><strong>Resolution Rate:</strong> 
+      <p><strong>Resolution Rate:</strong>
         <span style="font-weight: bold; color: <%= (@resolution_rate || 0) > 80 ? '#51cf66' : (@resolution_rate || 0) > 50 ? '#ffd43b' : '#ff6b6b' %>;">
           <%= @resolution_rate || 0 %>%
         </span>
@@ -368,7 +368,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   var toggleButton = document.getElementById('toggle-analytics');
   var analyticsSection = document.getElementById('analytics-section');
-  
+
   toggleButton.addEventListener('click', function() {
     if (analyticsSection.style.display === 'none' || analyticsSection.style.display === '') {
       analyticsSection.style.display = 'block';

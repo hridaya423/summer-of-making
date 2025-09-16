@@ -9,7 +9,7 @@
     // Vine boom sound for back to shop button
     if (returnShopButton) {
       returnShopButton.addEventListener('click', function() {
-        const vineboom = new Audio('https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/vine-boom.mp3');
+        const vineboom = new Audio(asset_path("vine-boom.mp3"));
         vineboom.play().catch(function(error) {
           console.error("Error playing vine boom:", error);
         });
@@ -31,8 +31,8 @@
           submitButton.disabled = true;
           submitButton.classList.remove('cursor-pointer');
           submitButton.classList.add('cursor-not-allowed');
-          
-          const outroSong = new Audio('https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/outro-song.mp3');
+
+          const outroSong = new Audio(asset_path("outro-song.mp3"));
           outroSong.play().catch(function(error) {
             console.error("Error playing outro song:", error);
             enableSubmit(); // Enable button if audio fails

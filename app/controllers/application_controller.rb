@@ -170,6 +170,6 @@ class ApplicationController < ActionController::Base
   end
 
   def subway_surfers_video_url
-    "https://cdn.revid.ai/subway_surfers/LOW_RES/2.mp4"
+    "https://hc-cdn.hel1.your-objectstorage.com/s/v3/2edb89bfa2c2f0d35e2894feb8540866f28f5f1c_2.mp4"
   end
 end

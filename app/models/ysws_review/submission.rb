@@ -6,7 +6,7 @@
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #  project_id  :bigint           not null
-#  reviewer_id :bigint           not null
+#  reviewer_id :bigint
 #
 # Indexes
 #
@@ -23,7 +23,7 @@ class YswsReview::Submission < ApplicationRecord
   include ActionView::Helpers::TextHelper  # For pluralize method
 
   belongs_to :project
-  belongs_to :reviewer, class_name: "User"
+  belongs_to :reviewer, class_name: "User", optional: true
   validates :project, uniqueness: true
 
   airtable_table_name "ysws_submission"

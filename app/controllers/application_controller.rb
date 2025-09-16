@@ -22,7 +22,7 @@ class ApplicationController < ActionController::Base
   before_action :fetch_hackatime_data_if_needed
   after_action :track_page_view
 
-  helper_method :current_user, :user_signed_in?, :current_verification_status, :current_impersonator, :impersonating?, :current_user_has_badge?
+  helper_method :current_user, :user_signed_in?, :current_verification_status, :current_impersonator, :impersonating?, :current_user_has_badge?, :brainrot_mode_active?, :brainrot_config
 
   def current_user
     @current_user ||= User.find_by(id: session[:user_id]) if session[:user_id]
@@ -127,4 +127,49 @@ class ApplicationController < ActionController::Base
 
   # no error :p
   def ahoy = (@ahoy ||= Class.new { def track(*) end }.new)
+
+  # Brainrot mode helpers
+  def brainrot_mode_active?
+    return false unless current_user
+    return false unless Flipper.enabled?(:brainrot_mode, current_user)
+    session[:brainrot_active] == true
+  end
+  def activate_brainrot_mode!
+    session[:brainrot_active] = true
+  end
+  def deactivate_brainrot_mode!
+    session[:brainrot_active] = false
+  end
+  def brainrot_config
+    {
+      sounds: brainrot_sounds,
+      video_url: subway_surfers_video_url,
+      activation_time: brainrot_activation_time
+    }
+  end
+
+  private
+
+  def brainrot_activation_time
+    @brainrot_activation_time ||= Time.zone.parse("2025-09-15 11:00:00 EDT")
+  end
+
+  def brainrot_sounds
+    [
+      asset_path("67.mp3"),
+      asset_path("tung-tung-sahur.mp3"),
+      asset_path("brr-brr-patapim.mp3"),
+      asset_path("rizz.mp3"),
+      asset_path("deathfort.mp3"),
+      asset_path("jet2holiday.mp3"),
+      asset_path("huh-cat.mp3"),
+      asset_path("spongebob.mp3"),
+      asset_path("vine-boom.mp3"),
+      asset_path("outro-song.mp3")
+    ]
+  end
+
+  def subway_surfers_video_url
+    "https://hc-cdn.hel1.your-objectstorage.com/s/v3/2edb89bfa2c2f0d35e2894feb8540866f28f5f1c_2.mp4"
+  end
 end

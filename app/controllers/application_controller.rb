@@ -160,16 +160,16 @@ class ApplicationController < ActionController::Base
 
   def brainrot_sounds
     [
-      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/67.mp3",
-      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/tung-tung-sahur.mp3",
-      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/brr-brr-patapim.mp3",
-      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/rizz.mp3",
-      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/deathfort.mp3",
-      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/jet2holiday.mp3",
-      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/huh-cat.mp3",
-      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/spongebob.mp3",
-      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/vine-boom.mp3",
-      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/outro-song.mp3"
+      asset_path("67.mp3"),
+      asset_path("tung-tung-sahur.mp3"),
+      asset_path("brr-brr-patapim.mp3"),
+      asset_path("rizz.mp3"),
+      asset_path("deathfort.mp3"),
+      asset_path("jet2holiday.mp3"),
+      asset_path("huh-cat.mp3"),
+      asset_path("spongebob.mp3"),
+      asset_path("vine-boom.mp3"),
+      asset_path("outro-song.mp3")
     ]
   end
 

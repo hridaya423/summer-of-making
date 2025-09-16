@@ -159,16 +159,16 @@ class ApplicationController < ActionController::Base
 
   def brainrot_sounds
     [
-      "/brainrot/67.mp3",
-      "/brainrot/tung-tung-sahur.mp3",
-      "/brainrot/brr-brr-patapim.mp3",
-      "/brainrot/rizz.mp3",
-      "/brainrot/deathfort.mp3",
-      "/brainrot/jet2holiday.mp3",
-      "/brainrot/huh-cat.mp3",
-      "/brainrot/spongebob.mp3",
-      "/brainrot/vine-boom.mp3",
-      "/brainrot/outro-song.mp3"
+      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/67.mp3",
+      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/tung-tung-sahur.mp3",
+      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/brr-brr-patapim.mp3",
+      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/rizz.mp3",
+      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/deathfort.mp3",
+      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/jet2holiday.mp3",
+      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/huh-cat.mp3",
+      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/spongebob.mp3",
+      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/vine-boom.mp3",
+      "https://github.com/hackclub/summer-of-making/blob/9f1e7769cf31021da2bd98eae93c5760f4de970f/app/assets/audios/outro-song.mp3"
     ]
   end
 

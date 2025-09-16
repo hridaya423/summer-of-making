@@ -7,8 +7,19 @@ class ShipFeedbackService
     votes = collect_payout_votes
     return nil if votes.empty?
 
-    explanations = votes.map(&:explanation).join("\n---\n")
-    
+    explanations = votes.map do |vote|
+      opposing_project = vote.ship_event_1 == @ship_event ? vote.ship_event_2.project : vote.ship_event_1.project
+      our_vote_change = vote.vote_changes.find_by(project: @ship_event.project)
+
+      vote_data = {
+        opposing_project: opposing_project.title,
+        outcome: our_vote_change.result,
+        explanation: vote.explanation
+      }
+
+      vote_data.to_json
+    end.join("\n---\n")
+
     prompt = build_feedback_prompt(explanations)
     
     begin

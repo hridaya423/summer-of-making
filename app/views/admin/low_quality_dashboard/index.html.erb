@@ -44,17 +44,6 @@
       <h3>Resolution Performance</h3>
       <p><strong>Resolved This Week:</strong> <span class="pill pill-green"><%= @resolved_current_week || 0 %></span></p>
       <p><strong>Resolved This Month:</strong> <span class="pill pill-green"><%= @resolved_current_month || 0 %></span></p>
-      <p><strong>Avg Resolution Time:</strong>
-        <span style="font-weight: bold;">
-          <% avg_hours = (@avg_resolution_time_hours || 0) %>
-          <% if avg_hours >= 24 %>
-            <%= (avg_hours / 24).round(1) %>d
-          <% elsif avg_hours >= 1 %>
-            <%= avg_hours.round(1) %>h
-          <% else %>
-            <%= (avg_hours * 60).round(0) %>m
-          <% end %>
-        </span>
       </p>
       <p><strong>Resolution Rate:</strong>
         <span style="font-weight: bold; color: <%= (@resolution_rate || 0) > 80 ? '#51cf66' : (@resolution_rate || 0) > 50 ? '#ffd43b' : '#ff6b6b' %>;">
@@ -68,7 +57,6 @@
       <h3>Impact & Actions</h3>
       <p><strong>Marked Low Quality:</strong> <span class="pill pill-red"><%= @marked_low_quality || 0 %></span></p>
       <p><strong>Marked OK:</strong> <span class="pill pill-green"><%= @marked_ok || 0 %></span></p>
-      <p><strong>Min Payouts Issued:</strong> <span class="pill pill-dark"><%= @low_quality_payouts_count || 0 %></span></p>
       <p><strong>Total Payout Amount:</strong> <span style="font-weight: bold;"><%= @low_quality_payouts_total || 0 %> shells</span></p>
       <p><strong>Repeat Offenders:</strong> <span class="pill pill-red"><%= (@repeat_offenders_data || []).length %></span></p>
     </div>

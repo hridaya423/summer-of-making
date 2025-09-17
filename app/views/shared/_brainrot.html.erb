@@ -27,13 +27,13 @@
 
       var currentSound = null;
       var brainrotSounds = <%= raw brainrot_config[:sounds].to_json %>;
-      
+
       const popup = document.getElementById('subway-popup');
       const video = document.getElementById('subway-video');
       const closeBtn = document.getElementById('subway-close');
       const resizeBtn = document.getElementById('subway-resize');
       const container = document.getElementById('subway-container');
-      const bruh = new Audio('<%= asset_path("bruh.mp3") %>');
+      const bruh = new Audio(<%= asset_path("bruh.mp3").to_json %>);
 
       let isLarge = false;
       let hoverCount = 0;
@@ -52,7 +52,6 @@
     }
 
       document.addEventListener('click', playRandomSound);
-
 
       function showPopup() {
         popup.classList.remove('hidden');

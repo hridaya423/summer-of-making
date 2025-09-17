@@ -236,14 +236,14 @@
                   <label style="display: flex; align-items: center; cursor: pointer;">
                     <%= form.check_box "devlog_approvals[#{devlog.id}][approved]",
                         { checked: devlog.ysws_review_approval&.approved?,
-                          style: "margin-right: 0.5rem;" },
+                          style: "margin-right: 0.75rem; transform: scale(2); transform-origin: left center;" },
                         "1", "0" %>
                     Approve
                   </label>
                   <label style="display: flex; align-items: center; cursor: pointer;">
                     <%= form.check_box "devlog_approvals[#{devlog.id}][rejected]",
                         { checked: devlog.ysws_review_approval&.approved? == false,
-                          style: "margin-right: 0.5rem;" },
+                          style: "margin-right: 0.75rem; transform: scale(2); transform-origin: left center;" },
                         "1", "0" %>
                     Reject
                   </label>
@@ -299,6 +299,11 @@
   <% end %>
 
   <div style="margin-top: 2rem; text-align: center; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+    <button type="button" id="capto600-btn"
+        class="pill pill-purple"
+        style="padding: 1rem 2rem; font-size: 1.1em; cursor: pointer; border: none; text-decoration: none; background-color: #9b59b6;">
+      Cap Devlogs to 600 Minutes
+    </button>
     <button type="button" id="approve-all-btn"
         class="pill pill-blue"
         style="padding: 1rem 2rem; font-size: 1.1em; cursor: pointer; border: none; text-decoration: none;">
@@ -382,6 +387,7 @@ function resetToOriginal(devlogId, originalMinutes) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  const capto600Btn = document.getElementById('capto600-btn');
   const approveAllBtn = document.getElementById('approve-all-btn');
   const rejectAllBtn = document.getElementById('reject-all-btn');
   const returnToCertifierBtn = document.getElementById('return-to-certifier-btn');
@@ -406,6 +412,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (minutesField) minutesField.value = 0;
       }
     }
+  });
+
+  // Cap to 600 minutes functionality
+  capto600Btn.addEventListener('click', function() {
+    const minutesInputs = document.querySelectorAll('input[id^="approved_minutes_"]');
+    minutesInputs.forEach(function(input) {
+      const currentValue = parseInt(input.value, 10);
+      if (!isNaN(currentValue) && currentValue > 600) {
+        input.value = 600;
+      }
+    });
   });
 
   // Approve all functionality with toggle

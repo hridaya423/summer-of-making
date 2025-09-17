@@ -169,18 +169,18 @@ class ApplicationController < ActionController::Base
   end
 
   def brainrot_sounds
-    [
-      asset_path("67.mp3"),
-      asset_path("tung-tung-sahur.mp3"),
-      asset_path("brr-brr-patapim.mp3"),
-      asset_path("rizz.mp3"),
-      asset_path("deathfort.mp3"),
-      asset_path("jet2holiday.mp3"),
-      asset_path("huh-cat.mp3"),
-      asset_path("spongebob.mp3"),
-      asset_path("vine-boom.mp3"),
-      asset_path("outro-song.mp3")
-    ]
+    %w[
+      67.mp3
+      tung-tung-sahur.mp3
+      brr-brr-patapim.mp3
+      rizz.mp3
+      deathfort.mp3
+      jet2holiday.mp3
+      huh-cat.mp3
+      spongebob.mp3
+      vine-boom.mp3
+      outro-song.mp3
+    ].map { |f| helpers.asset_path(f) }
   end
 
   def subway_surfers_video_url

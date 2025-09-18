@@ -53,6 +53,10 @@ class ShipCertification < ApplicationRecord
     "unclear_project_demonstration",
     "technical_issues_in_video",
     "insufficient_proof_of_functionality",
+    "demo_not_working_during_review",
+    "project_not_fully_working",
+    "github_repo_not_accessible",
+    "no_demo_video",
     "other_certification_issues"
   ].freeze
 
@@ -61,6 +65,10 @@ class ShipCertification < ApplicationRecord
     "unclear_project_demonstration" => "Unclear or confusing project demonstration",
     "technical_issues_in_video" => "Technical issues in the certification video",
     "insufficient_proof_of_functionality" => "Insufficient proof that project works",
+    "demo_not_working_during_review" => "Demo Link not working during review",
+    "github_repo_not_accessible" => "GitHub repository not accessible",
+    "no_demo_video" => "No demo video provided",
+    "project_not_fully_working" => "Project not fully working",
     "other_certification_issues" => "Other certification-related issues"
   }.freeze
 

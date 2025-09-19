@@ -147,7 +147,7 @@ class Project < ApplicationRecord
       .where(ship_certifications: { judgement: "approved" })
       .where(ysws_type: nil)
       .where(is_deleted: false)
-      .where(users: { is_banned: false })
+      .where(users: { is_banned: false, freeze_shop_activity: false })
   }
 
   scope :for_gallery, -> {

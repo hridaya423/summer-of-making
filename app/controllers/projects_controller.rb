@@ -134,7 +134,7 @@ class ProjectsController < ApplicationController
       return
     end
 
-    # Save the instructions (for the review team) if provided 
+    # Save the instructions (for the review team) if provided
     instructions = params[:recertification_instructions]
 
     if @project.request_recertification!(instructions)

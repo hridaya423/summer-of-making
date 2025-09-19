@@ -357,11 +357,10 @@
                   <label for="recertification-instructions-visible-<%= @project.id %>" class="block text-sm font-medium text-gray-700">
                     Special instructions for the review team (optional):
                   </label>
-                  <textarea 
-                    id="recertification-instructions-visible-<%= @project.id %>" 
-                    rows="5" 
-                    class="som-horizontal-input mt-1 block w-full text-sm"
-                  ></textarea>
+                  <textarea
+                    id="recertification-instructions-visible-<%= @project.id %>"
+                    rows="5"
+                    class="som-horizontal-input mt-1 block w-full text-sm"></textarea>
                 </div>
                 <% if @project.can_request_recertification? %>
                   <%= form_with url: project_recertification_path(@project), method: :post, local: true, id: "recertification-instructions-form-#{@project.id}" do |f| %>

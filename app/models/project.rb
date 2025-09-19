@@ -440,7 +440,7 @@ class Project < ApplicationRecord
     !latest_ship_certification.pending?
   end
 
-  def request_recertification!(instructions=nil)
+  def request_recertification!(instructions = nil)
     return false unless can_request_recertification?
 
     # create a new pending ship certification

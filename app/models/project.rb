@@ -143,10 +143,11 @@ class Project < ApplicationRecord
 
   # Projects eligible for YSWS review
   scope :ysws_review_eligible, -> {
-    joins(:ship_certifications)
+    joins(:ship_certifications, :user)
       .where(ship_certifications: { judgement: "approved" })
       .where(ysws_type: nil)
       .where(is_deleted: false)
+      .where(users: { is_banned: false, freeze_shop_activity: false })
   }
 
   scope :for_gallery, -> {

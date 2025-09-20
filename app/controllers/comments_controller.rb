@@ -29,18 +29,6 @@ class CommentsController < ApplicationController
     end
   end
 
-  private
-
-  def extract_text_from_rich_content(rich_content)
-    json = JSON.parse(rich_content)["json"] rescue nil
-    return "" unless json && json["content"]
-
-    json["content"].flat_map do |node|
-      node["content"]&.map { |inner| inner["text"] } || []
-    end.join(" ").strip
-  end
-
-
   def destroy
     @comment = @devlog.comments.find(params[:id])
     authorize @comment
@@ -69,6 +57,15 @@ class CommentsController < ApplicationController
   end
 
   private
+
+  def extract_text_from_rich_content(rich_content)
+    json = JSON.parse(rich_content)["json"] rescue nil
+    return "" unless json && json["content"]
+
+    json["content"].flat_map do |node|
+      node["content"]&.map { |inner| inner["text"] } || []
+    end.join(" ").strip
+  end
 
   def set_devlog
     @devlog = Devlog.find(params[:devlog_id])

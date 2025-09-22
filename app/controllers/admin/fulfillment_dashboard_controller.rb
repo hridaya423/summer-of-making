@@ -16,10 +16,18 @@ module Admin
 
     def fulfillment_type_filters
       {
-        "hq_mail" => "ShopItem::HQMailItem",
+        "hq_mail" => [ "ShopItem::HQMailItem", "ShopItem::PileOfStickersItem" ],
         "third_party" => "ShopItem::ThirdPartyPhysical",
-        "sinkening" => "ShopItem::SinkeningBalloons",
-        "warehouse" => [ "ShopItem::WarehouseItem", "ShopItem::PileOfStickersItem" ]
+        "warehouse" => "ShopItem::WarehouseItem",
+        "other" => [
+          "ShopItem::LetterMail",
+          "ShopItem::HCBGrant",
+          "ShopItem::SiteActionItem",
+          "ShopItem::BadgeItem",
+          "ShopItem::AdventSticker",
+          "ShopItem::HCBPreauthGrant",
+          "ShopItem::SpecialFulfillmentItem"
+        ]
       }
     end
 

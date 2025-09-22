@@ -7,7 +7,7 @@
   <%= render partial: "tool", locals: { path: admin_fulfillment_dashboard_index_path, label: "Open Fulfillments", count: ShopOrder.without_item_type("ShopItem::FreeStickers").where(aasm_state: "awaiting_periodical_fulfillment").count } %>
   <%= render partial: "tool", locals: { path: pending_admin_shop_orders_path, label: "Fraud check", count: ShopOrder.without_item_type("ShopItem::FreeStickers").where(aasm_state: :pending).count } %>
   <%= render partial: "tool", locals: { path: admin_ship_certifications_path, label: "Ship Certifications", count: ShipCertification.pending.size } %>
-  <%= render partial: "tool", locals: { path: admin_ysws_reviews_path, label: "YSWS Reviews", count: Project.ysws_review_eligible.where.not(id: Project.ysws_review_eligible.joins(devlogs: :ysws_review_approval).select(:id)).count } if @admin_signed_in %>
+  <%= render partial: "tool", locals: { path: admin_ysws_reviews_path, label: "YSWS Reviews", count: Project.ysws_review_eligible.where.not(id: Project.ysws_review_eligible.joins(devlogs: :ysws_review_approval).select(:id)).count } if current_user&.admin_or_ysws_reviewer? %>
   <%= render partial: "tool", locals: { path: "https://app.slack.com/client/T0266FRGM/D092Q3PQB7X", label: "Slack help"} %>
 </div>
 <hr>

@@ -440,6 +440,14 @@ class User < ApplicationRecord
     is_admin? || ship_certifier?
   end
 
+  def ysws_reviewer?
+    has_permission?("yswsreviewer")
+  end
+
+  def admin_or_ysws_reviewer?
+    is_admin? || ysws_reviewer?
+  end
+
   def admin_or_fraud_team_member?
     is_admin? || fraud_team_member?
   end

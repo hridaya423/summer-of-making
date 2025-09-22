@@ -1,6 +1,9 @@
 module Admin
   class YswsReviewsController < ApplicationController
-  def index
+    before_action :authenticate_ysws_reviewer!, except: []
+    skip_before_action :authenticate_admin!
+
+    def index
     @filter = params[:filter] || "pending"
     @sort_by = params[:sort_by] || "random"
 
@@ -197,6 +200,10 @@ module Admin
 
     # Apply as a WHERE condition using project IDs
     projects.where(id: language_query.select(:project_id))
+  end
+
+  def authenticate_ysws_reviewer!
+    redirect_to root_path unless current_user&.admin_or_ysws_reviewer?
   end
   end
 end

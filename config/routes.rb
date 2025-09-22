@@ -195,6 +195,15 @@ class FraudTeamConstraint
   end
 end
 
+class YswsReviewerConstraint
+  def self.matches?(request)
+    return false unless request.session[:user_id]
+
+    user = User.find_by(id: request.session[:user_id])
+    user&.admin_or_ysws_reviewer?
+  end
+end
+
 Rails.application.routes.draw do
   # Temporary flash testing routes (remove after testing)
   if Rails.env.development?
@@ -442,6 +451,8 @@ Rails.application.routes.draw do
           post :defrost
           post :grant_ship_certifier
           post :revoke_ship_certifier
+          post :grant_ysws_reviewer
+          post :revoke_ysws_reviewer
           post :give_black_market
           post :take_away_black_market
           post :ban_user
@@ -483,11 +494,6 @@ Rails.application.routes.draw do
         end
       end
       resources :readme_certifications, only: [ :index, :edit, :update ]
-      resources :ysws_reviews, only: [ :index, :show, :update ] do
-        member do
-          patch :return_to_certifier
-        end
-      end
       resources :special_access_users, only: [ :index ]
       resources :shop_items
       resources :shop_card_grants, only: [ :index, :show ]
@@ -498,6 +504,14 @@ Rails.application.routes.draw do
       end
       resources :sinkenings, only: [ :show, :update ], path: "sinkening"
       resources :advent_stickers, only: [ :index, :new, :create, :edit, :update, :destroy ]
+    end
+
+    constraints YswsReviewerConstraint do
+      resources :ysws_reviews, only: [ :index, :show, :update ] do
+        member do
+          patch :return_to_certifier
+        end
+      end
     end
   end
 

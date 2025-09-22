@@ -131,6 +131,28 @@ module Admin
       redirect_to admin_user_path(@user)
     end
 
+    def grant_ysws_reviewer
+      if @user.ysws_reviewer?
+        flash[:notice] = "#{@user.email} nothing changed, they already have ysws reviewer permissions"
+      else
+        @user.add_permission("yswsreviewer")
+        @user.create_activity("grant_ysws_reviewer")
+        flash[:success] = "gotcha, granted ysws reviewer rights to #{@user.email}"
+      end
+      redirect_to admin_user_path(@user)
+    end
+
+    def revoke_ysws_reviewer
+      unless @user.ysws_reviewer?
+        flash[:notice] = "#{@user.email} nothing changed, they don't have ysws reviewer permissions"
+      else
+        @user.remove_permission("yswsreviewer")
+        @user.create_activity("revoke_ysws_reviewer")
+        flash[:success] = "gotcha, revoked ysws reviewer rights from #{@user.email}"
+      end
+      redirect_to admin_user_path(@user)
+    end
+
     def ban_user
       @user.ban_user!("admin_ban")
       flash[:success] = "get rekt"

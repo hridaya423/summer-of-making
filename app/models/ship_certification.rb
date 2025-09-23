@@ -58,7 +58,8 @@ class ShipCertification < ApplicationRecord
     "project_not_fully_working",
     "github_repo_not_accessible",
     "no_demo_video",
-    "other_certification_issues"
+    "other_certification_issues",
+    "insufficient_readme"
   ].freeze
 
   YSWS_FEEDBACK_REASON_LABELS = {
@@ -70,7 +71,8 @@ class ShipCertification < ApplicationRecord
     "github_repo_not_accessible" => "GitHub repository not accessible",
     "no_demo_video" => "No demo video provided",
     "project_not_fully_working" => "Project not fully working",
-    "other_certification_issues" => "Other certification-related issues"
+    "other_certification_issues" => "Other certification-related issues",
+    "insufficient_readme" => "Insufficient README documentation"
   }.freeze
 
   def ysws_returned?

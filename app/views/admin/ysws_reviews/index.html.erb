@@ -241,7 +241,6 @@
         yswsDailyBoard.style.display = yswsDailyBoard.style.display === 'none' ? 'block' : 'none';
         yswsDailyBtn.textContent = yswsDailyBoard.style.display === 'none' ? 'show daily leaderboard' : 'hide daily leaderboard';
         yswsAllBtn.textContent = 'how about all time?';
-        
         // Show weekly if daily was just hidden
         showWeeklyIfNothingElse();
       });
@@ -254,7 +253,6 @@
         yswsAllBoard.style.display = yswsAllBoard.style.display === 'none' ? 'block' : 'none';
         yswsAllBtn.textContent = yswsAllBoard.style.display === 'none' ? 'how about all time?' : 'hide all time leaderboard';
         yswsDailyBtn.textContent = 'show daily leaderboard';
-        
         // Show weekly if all-time was just hidden
         showWeeklyIfNothingElse();
       });

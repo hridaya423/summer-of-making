@@ -221,7 +221,7 @@ Rails.application.routes.draw do
   post "/sign-up", to: "landing#sign_up"
 
   # Temporarily disable all API routes
-  match "/admin/*path", via: :all, to: proc { |env| [ 429, { "Content-Type" => "application/json" }, [ '{"error":"Admin paths temporarily disabled"}' ] ] }
+  match "/votes/*path", via: :all, to: proc { |env| [ 429, { "Content-Type" => "application/json" }, [ '{"error":"Heavy load: Vote paths temporarily disabled"}' ] ] }
 
   # Authentication routes
   get "/auth/slack", to: "sessions#new"

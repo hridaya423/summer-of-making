@@ -25,8 +25,7 @@ class ApplicationController < ActionController::Base
   # before_action :auto_activate_brainrot_mode_if_eligible
   # after_action :track_page_view
 
-  helper_method :current_user, :user_signed_in?, :current_verification_status, :current_impersonator, :impersonating?, :current_user_has_badge?
-  # , :brainrot_mode_active?, :brainrot_config
+  helper_method :current_user, :user_signed_in?, :current_verification_status, :current_impersonator, :impersonating?, :current_user_has_badge?, :brainrot_mode_active?, :brainrot_config
 
   def current_user
     @current_user ||= User.find_by(id: session[:user_id]) if session[:user_id]

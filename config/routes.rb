@@ -205,13 +205,6 @@ class YswsReviewerConstraint
 end
 
 Rails.application.routes.draw do
-  # Temporary flash testing routes (remove after testing)
-  if Rails.env.development?
-    get "/test/flash/notice", to: "flash_test#test_notice"
-    get "/test/flash/alert", to: "flash_test#test_alert"
-    get "/test/flash/both", to: "flash_test#test_both"
-  end
-
   mount ActiveInsights::Engine => "/insights"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
@@ -226,6 +219,9 @@ Rails.application.routes.draw do
   # Root path is landing page for unauthenticated, redirects to dashboard for authenticated
   root "landing#index"
   post "/sign-up", to: "landing#sign_up"
+
+  # Temporarily disable all API routes
+  match "/api/*path", via: :all, to: proc { |env| [ 429, { "Content-Type" => "application/json" }, [ '{"error":"APIs temporarily disabled"}' ] ] }
 
   # Authentication routes
   get "/auth/slack", to: "sessions#new"

@@ -4,9 +4,6 @@ module Admin
     skip_before_action :authenticate_admin!
 
     def index
-    # TEMPORARY: Block YSWS reviews to test memory leak
-    render plain: "YSWS Reviews temporarily disabled for memory leak testing", status: 503
-    return
     @filter = params[:filter] || "pending"
     @sort_by = params[:sort_by] || "random"
 

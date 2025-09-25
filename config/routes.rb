@@ -220,6 +220,9 @@ Rails.application.routes.draw do
   root "landing#index"
   post "/sign-up", to: "landing#sign_up"
 
+  # Temporarily disable all API routes
+  match "/api/*path", via: :all, to: proc { |env| [429, {"Content-Type" => "application/json"}, ['{"error":"APIs temporarily disabled"}']] }
+
   # Authentication routes
   get "/auth/slack", to: "sessions#new"
   get "/auth/slack/callback", to: "sessions#create", as: :slack_callback

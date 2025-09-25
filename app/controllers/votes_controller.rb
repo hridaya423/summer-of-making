@@ -248,14 +248,13 @@ class VotesController < ApplicationController
   def set_projects
     @vote_queue = current_user.user_vote_queue || current_user.build_user_vote_queue.tap(&:save!)
 
-    @vote_queue.with_lock do
-      if @vote_queue.queue_exhausted?
-        # speed up the web req: matchup generation is expensive and per matchup it takes ~400ms
-        @vote_queue.refill_queue!(1)
-        RefillUserVoteQueueJob.perform_later(current_user.id)
-      elsif @vote_queue.needs_refill?
-        RefillUserVoteQueueJob.perform_later(current_user.id)
-      end
+    # If queue is exhausted or needs refill, queue background job and return early to prevent memory leak
+    if @vote_queue.queue_exhausted?
+      RefillUserVoteQueueJob.perform_later(current_user.id)
+      redirect_to new_vote_path, alert: "No votes for you to make right now! Come back in 30 seconds once we've generated some new ones."
+      return
+    elsif @vote_queue.needs_refill?
+      RefillUserVoteQueueJob.perform_later(current_user.id)
     end
 
     Rails.logger.info("bc js work #{@vote_queue.inspect}")

@@ -70,6 +70,34 @@ module Admin
     @total_pending = eligible_base.where.not(id: reviewed_project_ids).count
     @total_reviewed = eligible_base.where(id: reviewed_project_ids).count
     @total_all = eligible_base.count
+
+    # YSWS Reviewer Leaderboards
+    est_zone = ActiveSupport::TimeZone.new("America/New_York")
+    current_est = Time.current.in_time_zone(est_zone)
+    week_start = current_est.beginning_of_week(:sunday)
+
+    @leaderboard_week = User.joins("INNER JOIN ysws_review_submissions ON users.id = ysws_review_submissions.reviewer_id")
+      .where.not(ysws_review_submissions: { reviewer_id: nil })
+      .where("ysws_review_submissions.updated_at >= ?", week_start)
+      .group("users.id", "users.display_name", "users.email")
+      .order("COUNT(ysws_review_submissions.id) DESC")
+      .limit(20)
+      .pluck("users.display_name", "users.email", "COUNT(ysws_review_submissions.id)")
+
+    @leaderboard_day = User.joins("INNER JOIN ysws_review_submissions ON users.id = ysws_review_submissions.reviewer_id")
+      .where.not(ysws_review_submissions: { reviewer_id: nil })
+      .where("ysws_review_submissions.updated_at >= ?", 24.hours.ago)
+      .group("users.id", "users.display_name", "users.email")
+      .order("COUNT(ysws_review_submissions.id) DESC")
+      .limit(20)
+      .pluck("users.display_name", "users.email", "COUNT(ysws_review_submissions.id)")
+
+    @leaderboard_all = User.joins("INNER JOIN ysws_review_submissions ON users.id = ysws_review_submissions.reviewer_id")
+      .where.not(ysws_review_submissions: { reviewer_id: nil })
+      .group("users.id", "users.display_name", "users.email")
+      .order("COUNT(ysws_review_submissions.id) DESC")
+      .limit(20)
+      .pluck("users.display_name", "users.email", "COUNT(ysws_review_submissions.id)")
   end
 
   def show

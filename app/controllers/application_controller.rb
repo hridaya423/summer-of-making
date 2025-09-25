@@ -22,7 +22,7 @@ class ApplicationController < ActionController::Base
   before_action :check_if_banned
   before_action :fetch_hackatime_data_if_needed
   before_action :auto_activate_brainrot_mode_if_eligible
-  after_action :track_page_view
+  # after_action :track_page_view
 
   helper_method :current_user, :user_signed_in?, :current_verification_status, :current_impersonator, :impersonating?, :current_user_has_badge?, :brainrot_mode_active?, :brainrot_config
 

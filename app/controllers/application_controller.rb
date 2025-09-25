@@ -13,16 +13,10 @@ class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   # allow_browser versions: :modern
 
-  # before_action do
-  #   Rails.logger.info ">>> Session[:user_id] = #{session[:user_id]}"
-  #   Rails.logger.info ">>> Current user ID: #{current_user&.id}"
-  #   Rails.logger.info ">>> Request IP: #{request.remote_ip}, User-Agent: #{request.user_agent[0..100]}"
-  # end
-
   before_action :authenticate_user!
   before_action :check_if_banned
   before_action :fetch_hackatime_data_if_needed
-  # after_action :track_page_view
+  after_action :track_page_view
 
   helper_method :current_user, :user_signed_in?, :current_verification_status, :current_impersonator, :impersonating?, :current_user_has_badge?
 

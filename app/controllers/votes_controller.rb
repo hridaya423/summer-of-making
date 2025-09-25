@@ -251,7 +251,7 @@ class VotesController < ApplicationController
     # If queue is exhausted or needs refill, queue background job and return early to prevent memory leak
     if @vote_queue.queue_exhausted?
       RefillUserVoteQueueJob.perform_later(current_user.id)
-      redirect_to new_vote_path, alert: "No votes for you to make right now! Come back in 30 seconds once we've generated some new ones."
+      redirect_to campfire_path, alert: "No votes for you to make right now! Come back in 30 seconds once we've generated some new ones."
       return
     elsif @vote_queue.needs_refill?
       RefillUserVoteQueueJob.perform_later(current_user.id)

@@ -177,5 +177,3 @@ gem "autotuner", "~> 1.0"
 gem "phlex-rails", "~> 2.3"
 
 gem "literal", "~> 1.8"
-
-gem "ruby-prof"

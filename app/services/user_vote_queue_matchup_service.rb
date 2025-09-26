@@ -8,9 +8,13 @@ class UserVoteQueueMatchupService
     @excluded_ship_event_ids = Array(excluded_ship_event_ids)
     @projects_with_time = []
     @unpaid_projects = []
+    @mature_unpaid_projects = []
+    @immature_unpaid_projects = []
+    @paid_projects = []
   end
 
-  attr_reader :projects_with_time, :unpaid_projects
+  attr_reader :projects_with_time, :unpaid_projects,
+              :mature_unpaid_projects, :immature_unpaid_projects, :paid_projects
 
   def build!
     latest_eligible = ShipEvent
@@ -48,6 +52,12 @@ class UserVoteQueueMatchupService
                      .pluck(:payable_id)
                      .to_set
 
+    vote_counts_by_ship_event = Hash.new(0)
+    votes_col1 = Vote.active.where(ship_event_1_id: latest_ship_event_ids).group(:ship_event_1_id).count
+    votes_col2 = Vote.active.where(ship_event_2_id: latest_ship_event_ids).group(:ship_event_2_id).count
+    votes_col1.each { |id, count| vote_counts_by_ship_event[id] += count }
+    votes_col2.each { |id, count| vote_counts_by_ship_event[id] += count }
+
     @projects_with_time = eligible_project_rows.filter_map do |project_id, project_user_id, project_repo_link|
       latest_id = latest_by_project[project_id]
       next unless latest_id
@@ -61,7 +71,7 @@ class UserVoteQueueMatchupService
         total_time: total_time_seconds,
         ship_event_id: latest_id,
         is_paid: paid_ids.include?(latest_id),
-        votes_count: ShipEvent.find(latest_id).vote_count,
+        votes_count: vote_counts_by_ship_event[latest_id].to_i,
         ship_date: ship_dates_by_project[project_id]
       }
     end
@@ -69,7 +79,9 @@ class UserVoteQueueMatchupService
     Rails.logger.info("projects_with_time: #{@projects_with_time.map { |p| [ p[:project_id], p[:votes_count] ] }}")
 
     @unpaid_projects = @projects_with_time.select { |p| !p[:is_paid] }
-    Rails.logger.info("unpaid_projects: #{@unpaid_projects.map { |p| [ p[:project_id], p[:votes_count] ] }}")
+    @paid_projects = @projects_with_time.select { |p| p[:is_paid] }
+    @mature_unpaid_projects = @projects_with_time.select { |p| p[:votes_count].to_i >= 12 && !p[:is_paid] }
+    @immature_unpaid_projects = @projects_with_time.select { |p| p[:votes_count].to_i < 12 && !p[:is_paid] }
     self
   end
 
@@ -87,8 +99,7 @@ class UserVoteQueueMatchupService
 
       if selected_project_data.empty?
         # First pick: unpaid and immature (< 12 votes) (kinda borrowing uncertaiity from bayseain systems but not really)
-        available_unpaid_immature = @unpaid_projects.select { |p| eligible_for_selection?(p, used_user_ids, used_repo_links, used_ship_event_ids) && p[:votes_count].to_i < 12 }
-        Rails.logger.info("available_unpaid_immature: #{available_unpaid_immature.map { |p| [ p[:project_id], p[:votes_count] ] }}")
+        available_unpaid_immature = @immature_unpaid_projects.select { |p| eligible_for_selection?(p, used_user_ids, used_repo_links, used_ship_event_ids) }
         first_project_data = weighted_sample(available_unpaid_immature)
         next unless first_project_data
 
@@ -100,31 +111,24 @@ class UserVoteQueueMatchupService
         min_time = first_time * 0.7
         max_time = first_time * 1.3
 
-        mature_candidates = @projects_with_time.select { |p|
-          eligible_for_selection?(p, used_user_ids, used_repo_links, used_ship_event_ids) &&
-          time_compatible?(p, min_time, max_time) &&
-          !p[:is_paid] &&
-          p[:votes_count].to_i >= 12
-        }
-        Rails.logger.info("mature_candidates: #{mature_candidates.map { |p| [ p[:project_id], p[:votes_count] ] }}")
-
-        if mature_candidates.empty?
-          mature_candidates = @projects_with_time.select { |p|
-            eligible_for_selection?(p, used_user_ids, used_repo_links, used_ship_event_ids) &&
-            time_compatible?(p, min_time, max_time) &&
-            p[:is_paid]
-          }
-        end
-
-        if mature_candidates.any?
-          second_project_data = weighted_sample(mature_candidates)
+        compatible_mature_unpaid = @mature_unpaid_projects.select { |p| eligible_for_selection?(p, used_user_ids, used_repo_links, used_ship_event_ids) && time_compatible?(p, min_time, max_time) }
+        if compatible_mature_unpaid.any?
+          second_project_data = weighted_sample(compatible_mature_unpaid)
           selected_project_data << second_project_data
           used_user_ids << second_project_data[:user_id]
           used_repo_links << second_project_data[:repo_link] if second_project_data[:repo_link].present?
         else
-          selected_project_data.clear
-          used_user_ids.clear
-          used_repo_links.clear
+          compatible_paid = @paid_projects.select { |p| eligible_for_selection?(p, used_user_ids, used_repo_links, used_ship_event_ids) && time_compatible?(p, min_time, max_time) }
+          if compatible_paid.any?
+            second_project_data = weighted_sample(compatible_paid)
+            selected_project_data << second_project_data
+            used_user_ids << second_project_data[:user_id]
+            used_repo_links << second_project_data[:repo_link] if second_project_data[:repo_link].present?
+          else
+            selected_project_data.clear
+            used_user_ids.clear
+            used_repo_links.clear
+          end
         end
       end
     end

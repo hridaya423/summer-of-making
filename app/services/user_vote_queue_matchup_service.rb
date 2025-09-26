@@ -145,7 +145,7 @@ class UserVoteQueueMatchupService
     return nil if projects.empty?
     return projects.first if projects.size == 1
 
-    weights = projects.map.with_index { |_, index| 0.95 ** index }
+    weights = projects.map.with_index { |_, index| 0.60 ** index }
     total_weight = weights.sum
 
     random = rand * total_weight

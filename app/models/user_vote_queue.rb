@@ -166,17 +166,18 @@ class UserVoteQueue < ApplicationRecord
     used_ship_event_ids += TUTORIAL_PAIR
 
     # i want to keep as is from the votes controller
-    additional_pairs.times do
+    max_attempts = additional_pairs * 50
+    max_attempts.times do
+      break if new_pairs.length >= additional_pairs
       pair = generate_matchup
-      if pair &&
-         !existing_pairs.include?(pair) &&
-         !used_ship_event_ids.include?(pair[0]) &&
-         !used_ship_event_ids.include?(pair[1])
-        new_pairs << pair
-        existing_pairs << pair
-        used_ship_event_ids.add(pair[0])
-        used_ship_event_ids.add(pair[1])
-      end
+      next unless pair
+      a, b = pair
+      next if existing_pairs.include?(pair) ||
+              [ a, b ].any? { |id| used_ship_event_ids.include?(id) }
+
+      new_pairs << pair
+      existing_pairs << pair
+      used_ship_event_ids << a << b
     end
 
     if new_pairs.any?

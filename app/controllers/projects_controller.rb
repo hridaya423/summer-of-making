@@ -549,7 +549,6 @@ class ProjectsController < ApplicationController
     @project = Project.includes(
       user: [ :user_hackatime_data, :user_badges ],
       banner_attachment: :blob,
-      hackatime_project_keys: [],
       devlogs: [ :file_attachment ]
     ).find(params[:id])
   rescue ActiveRecord::RecordNotFound

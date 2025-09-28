@@ -34,7 +34,7 @@ class ShipFeedbackService
       response = Faraday.post("https://ai.hackclub.com/chat/completions", payload.to_json, "Content-Type" => "application/json")
       body = JSON.parse(response.body)
       feedback = body["choices"]&.first&.dig("message", "content") || "No response from AI"
-      
+
       if feedback.present?
         @ship_event.update!(feedback: feedback)
         feedback
@@ -52,7 +52,7 @@ class ShipFeedbackService
 
   def collect_payout_votes
     project = @ship_event.project
-    
+
     Vote.joins(:vote_changes)
         .where(vote_changes: { project: project })
         .where("votes.created_at > ?", @ship_event.created_at)
@@ -63,7 +63,7 @@ class ShipFeedbackService
 
   def build_feedback_prompt(explanations)
     project_name = @ship_event.project.title
-    
+
     <<~PROMPT
       You are an expert project reviewer providing constructive feedback for a shipped project called "#{project_name}".
 

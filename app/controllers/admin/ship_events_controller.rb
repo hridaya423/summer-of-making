@@ -1,5 +1,5 @@
 class Admin::ShipEventsController < Admin::ApplicationController
-  before_action :set_ship_event, only: [:regenerate_feedback]
+  before_action :set_ship_event, only: [ :regenerate_feedback ]
 
   def regenerate_feedback
     result = @ship_event.regenerate_feedback

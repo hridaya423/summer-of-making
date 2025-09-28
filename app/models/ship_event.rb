@@ -41,7 +41,7 @@ class ShipEvent < ApplicationRecord
   end
 
   def votes_needed_for_payout
-    [18 - vote_count, 0].max
+    [ 18 - vote_count, 0 ].max
   end
 
   def self.airtable_table_name
@@ -138,6 +138,5 @@ class ShipEvent < ApplicationRecord
     tp = user.tutorial_progress || TutorialProgress.create!(user: user)
     tp.complete_new_tutorial_step!("ship")
     tp.complete_new_tutorial_step!("shipped")
-
   end
 end

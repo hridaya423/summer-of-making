@@ -1,17 +1,17 @@
 class ShipEventsController < ApplicationController
-  before_action :set_ship_event, only: [:feedback]
+  before_action :set_ship_event, only: [ :feedback ]
 
   def feedback
     respond_to do |format|
       format.json do
         if @ship_event.has_feedback?
-          render json: { 
+          render json: {
             feedback: @ship_event.feedback,
-            ship_event_id: @ship_event.id 
+            ship_event_id: @ship_event.id
           }
         else
-          render json: { 
-            error: "No feedback available" 
+          render json: {
+            error: "No feedback available"
           }, status: 404
         end
       end

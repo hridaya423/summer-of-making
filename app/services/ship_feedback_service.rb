@@ -21,16 +21,16 @@ class ShipFeedbackService
     end.join("\n---\n")
 
     prompt = build_feedback_prompt(explanations)
-    
+
     begin
       payload = {
-        messages: [{ role: "user", content: prompt }],
+        messages: [ { role: "user", content: prompt } ],
         model: "qwen/qwen3-32b",
         reasoning_effort: "default",
         include_reasoning: false,
         temperature: 0.7
       }
-      
+
       response = Faraday.post("https://ai.hackclub.com/chat/completions", payload.to_json, "Content-Type" => "application/json")
       body = JSON.parse(response.body)
       feedback = body["choices"]&.first&.dig("message", "content") || "No response from AI"
@@ -56,9 +56,9 @@ class ShipFeedbackService
     Vote.joins(:vote_changes)
         .where(vote_changes: { project: project })
         .where("votes.created_at > ?", @ship_event.created_at)
-        .where(status: 'active')
+        .where(status: "active")
         .includes(:user)
-        .limit(18) 
+        .limit(18)
   end
 
   def build_feedback_prompt(explanations)

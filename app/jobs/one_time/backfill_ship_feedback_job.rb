@@ -4,7 +4,6 @@ class BackfillShipFeedbackJob < ApplicationJob
   BATCH_SIZE = 10 
 
   def perform(batch_start_id = nil)
-    # Only process ship events that have payouts but no feedback
     ship_events = ShipEvent.joins(:payouts)
                           .where(feedback: [nil, ""])
                           .order(:id)

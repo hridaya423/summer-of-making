@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_13_210400) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_27_122852) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -248,9 +248,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_13_210400) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "last_hackatime_time"
+    t.integer "seconds_coded"
     t.integer "likes_count", default: 0, null: false
     t.integer "comments_count", default: 0, null: false
-    t.integer "seconds_coded"
     t.datetime "hackatime_pulled_at"
     t.integer "views_count", default: 0, null: false
     t.integer "duration_seconds", default: 0, null: false
@@ -448,6 +448,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_13_210400) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "recertification_instructions"
     t.text "ysws_feedback_reasons"
     t.bigint "ysws_returned_by_id"
     t.datetime "ysws_returned_at"
@@ -484,6 +485,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_13_210400) do
     t.integer "decisions_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "multiplier", precision: 4, scale: 2, default: "1.0"
     t.index ["approved_by_id"], name: "index_ship_reviewer_payout_requests_on_approved_by_id"
     t.index ["reviewer_id"], name: "index_ship_reviewer_payout_requests_on_reviewer_id"
   end
@@ -959,6 +961,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_13_210400) do
     t.datetime "processed_at"
     t.text "ai_feedback"
     t.boolean "is_low_quality", default: false, null: false
+    t.string "user_agent"
+    t.string "ip"
+    t.integer "time_on_tab_ms"
+    t.integer "time_off_tab_ms"
+    t.index ["ip"], name: "index_votes_on_ip"
     t.index ["marked_invalid_at"], name: "index_votes_on_marked_invalid_at"
     t.index ["marked_invalid_by_id"], name: "index_votes_on_marked_invalid_by_id"
     t.index ["project_1_id"], name: "index_votes_on_project_1_id"
@@ -966,6 +973,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_13_210400) do
     t.index ["ship_event_1_id"], name: "index_votes_on_ship_event_1_id"
     t.index ["ship_event_2_id"], name: "index_votes_on_ship_event_2_id"
     t.index ["status"], name: "index_votes_on_status"
+    t.index ["time_off_tab_ms"], name: "index_votes_on_time_off_tab_ms"
+    t.index ["time_on_tab_ms"], name: "index_votes_on_time_on_tab_ms"
+    t.index ["user_agent"], name: "index_votes_on_user_agent"
     t.index ["user_id", "ship_event_1_id", "ship_event_2_id"], name: "index_votes_on_user_and_ship_events", unique: true
     t.index ["user_id"], name: "index_votes_on_user_id"
   end

@@ -7,7 +7,7 @@
   <%= render partial: "tool", locals: { path: admin_fulfillment_dashboard_index_path, label: "Open Fulfillments", count: ShopOrder.without_item_type("ShopItem::FreeStickers").where(aasm_state: "awaiting_periodical_fulfillment").count } %>
   <%= render partial: "tool", locals: { path: pending_admin_shop_orders_path, label: "Fraud check", count: ShopOrder.without_item_type("ShopItem::FreeStickers").where(aasm_state: :pending).count } %>
   <%= render partial: "tool", locals: { path: admin_ship_certifications_path, label: "Ship Certifications", count: ShipCertification.pending.size } %>
-  <%= render partial: "tool", locals: { path: admin_ysws_reviews_path, label: "YSWS Reviews", count: Project.ysws_review_eligible.where.not(id: Project.ysws_review_eligible.joins(devlogs: :ysws_review_approval).select(:id)).count } if @admin_signed_in %>
+  <%= render partial: "tool", locals: { path: admin_ysws_reviews_path, label: "YSWS Reviews", count: Project.ysws_review_eligible.where.not(id: Project.ysws_review_eligible.joins(devlogs: :ysws_review_approval).select(:id)).count } if current_user&.admin_or_ysws_reviewer? %>
   <%= render partial: "tool", locals: { path: "https://app.slack.com/client/T0266FRGM/D092Q3PQB7X", label: "Slack help"} %>
 </div>
 <hr>
@@ -15,7 +15,7 @@
 <h1 style="margin-top: 1.5em; font-size: 1.5rem;">Dashboards</h1>
 <div class="agrid" style="max-width: 700px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2em;">
   <%= render partial: "tool", locals: { path: admin_shop_items_path, label: "Shop Items" } if @admin_signed_in %>
-  <%= render partial: "tool", locals: { path: admin_users_path, label: "Users" } if @admin_signed_in %>
+  <%= render partial: "tool", locals: { path: admin_users_path, label: "Users" } %>
   <%= render partial: "tool", locals: { path: admin_special_access_users_path, label: "Special Access Users" } if @admin_signed_in %>
   <%= render partial: "tool", locals: { path: admin_view_analytics_path, label: "View Counters" } if @admin_signed_in %>
   <%= render partial: "tool", locals: { path: admin_blazer_path, label: "Blazer" } if @admin_signed_in %>
@@ -28,6 +28,7 @@
   <%= render partial: "tool", locals: { path: admin_caches_path, label: "Global Caches" } if @admin_signed_in %>
   <%= render partial: "tool", locals: { path: admin_sinkening_path(SinkeningSetting.current), label: "The Sinkening" } if @admin_signed_in %>
   <%= render partial: "tool", locals: { path: admin_readme_certifications_path, label: "README certs", count: ReadmeCertification.pending.size } if @admin_signed_in %>
+  <%= render partial: "tool", locals: { path: admin_advent_stickers_path, label: "Advent Stickers" } if @admin_signed_in %>
 </div>
 <hr>
 

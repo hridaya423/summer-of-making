@@ -194,6 +194,22 @@
             ) %>
           </li>
         <% end %>
+        <% if current_user&.ysws_reviewer? %>
+          <li class="flex justify-start border-2 border-dashed border-purple-500 bg-purple-500/10" style="margin-right: 10px; border-radius: 10px;">
+            <%= render C::Link.new(
+              target: admin_ysws_reviews_path,
+              text: "YSWS Reviews",
+              icon: "edit",
+              large: true,
+              animate_push: true,
+              text_attr: {
+          data: { sidebar_target: "collapseFade" },
+          class: "text-3xl"
+              },
+              underline_attr: { data: { sidebar_target: "underline" } }
+            ) %>
+          </li>
+        <% end %>
       </ul>
     </nav>
   </div>

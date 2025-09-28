@@ -53,6 +53,28 @@ class ShipEvent < ApplicationRecord
     vote_count >= 18
   end
 
+  def has_feedback?
+    feedback.present?
+  end
+
+  def feedback_summary
+    return nil unless has_feedback?
+    
+    feedback.match(/\*\*Summary\*\*:\s*(.+?)(?=\n\*\*|\z)/m)&.[](1)&.strip
+  end
+
+  def vote_count
+    VoteChange.where(project: project).where("created_at > ?", created_at).count
+  end
+
+  def votes_needed_for_payout
+    [18 - vote_count, 0].max
+  end
+
+  def ready_for_payout?
+    vote_count >= 18
+  end
+
   def self.airtable_table_name
     "_ship_events"
   end
@@ -99,6 +121,10 @@ class ShipEvent < ApplicationRecord
           .sum(:duration_seconds)
   end
 
+  def vote_count
+    VoteChange.where(project: project).where("created_at <= ?", created_at).count
+  end
+
   private
 
   def maybe_create_ship_certification
@@ -143,5 +169,6 @@ class ShipEvent < ApplicationRecord
     tp = user.tutorial_progress || TutorialProgress.create!(user: user)
     tp.complete_new_tutorial_step!("ship")
     tp.complete_new_tutorial_step!("shipped")
+
   end
 end

@@ -15,7 +15,6 @@ class Projects::ShipsController < ApplicationController
       is_first_ship = current_user.projects.joins(:ship_events).count == 1
       ahoy.track "tutorial_step_first_project_shipped", user_id: current_user.id, project_id: @project.id, is_first_ship: is_first_ship
       redirect_to project_path(@project), notice: "Your project has been shipped!"
-
       message = "Congratulations on shipping your project! Now thy project shall fight for blood :ultrafastparrot:"
       SendSlackDmJob.perform_later(@project.user.slack_id, message) if @project.user.slack_id.present?
     else

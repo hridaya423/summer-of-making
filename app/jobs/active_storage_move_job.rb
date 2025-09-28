@@ -12,8 +12,10 @@ class ActiveStorageMoveJob < ApplicationJob
         configured_concurrency = Integer(ENV.fetch("AS_MOVE_CONCURRENCY", 8)) rescue 8
         notify_every = Integer(ENV.fetch("AS_MOVE_NOTIFY_EVERY", 1000)) rescue 1000
         pool_size = (ActiveRecord::Base.connection_pool.size rescue 5)
+        # rubocop:disable Layout/SpaceInsideArrayLiteralBrackets
         max_concurrency = [ configured_concurrency, [ pool_size - 1, 1 ].max ].min
         concurrency = [ [ max_concurrency, 1 ].max, 64 ].min
+        # rubocop:enable Layout/SpaceInsideArrayLiteralBrackets
         total_to_process = scope.count
         migrated_count = 0
 

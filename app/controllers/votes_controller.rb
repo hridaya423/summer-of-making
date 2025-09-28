@@ -80,10 +80,14 @@ class VotesController < ApplicationController
       return
     end
 
-    @vote = current_user.votes.build(vote_params.except(:ship_event_1_id, :ship_event_2_id, :signature))
+    @vote = current_user.votes.build(vote_params.except(:ship_event_1_id, :ship_event_2_id, :signature, :time_on_tab_ms, :time_off_tab_ms))
     @vote.ship_event_1_id = ship_event_1_id
     @vote.ship_event_2_id = ship_event_2_id
     @vote.time_spent_voting_ms = time_spt_ms
+    @vote.user_agent = request.user_agent
+    @vote.ip = request.remote_ip
+    @vote.time_on_tab_ms = params[:vote][:time_on_tab_ms].to_i
+    @vote.time_off_tab_ms = params[:vote][:time_off_tab_ms].to_i
 
     @vote.project_1_id = project_1_id
     @vote.project_2_id = project_2_id
@@ -248,14 +252,13 @@ class VotesController < ApplicationController
   def set_projects
     @vote_queue = current_user.user_vote_queue || current_user.build_user_vote_queue.tap(&:save!)
 
-    @vote_queue.with_lock do
-      if @vote_queue.queue_exhausted?
-        # speed up the web req: matchup generation is expensive and per matchup it takes ~400ms
-        @vote_queue.refill_queue!(1)
-        RefillUserVoteQueueJob.perform_later(current_user.id)
-      elsif @vote_queue.needs_refill?
-        RefillUserVoteQueueJob.perform_later(current_user.id)
-      end
+    # If queue is exhausted or needs refill, queue background job and return early to prevent memory leak
+    if @vote_queue.queue_exhausted?
+      RefillUserVoteQueueJob.perform_later(current_user.id)
+      redirect_to campfire_path, alert: "No votes for you to make right now! Come back in 30 seconds once we've generated some new ones."
+      return
+    elsif @vote_queue.needs_refill?
+      RefillUserVoteQueueJob.perform_later(current_user.id)
     end
 
     Rails.logger.info("bc js work #{@vote_queue.inspect}")
@@ -332,6 +335,7 @@ class VotesController < ApplicationController
 
   def vote_params
     params.expect(vote: %i[winning_project_id explanation
-                           ship_event_1_id ship_event_2_id signature cf_turnstile_response])
+                           ship_event_1_id ship_event_2_id signature cf_turnstile_response
+                           time_on_tab_ms time_off_tab_ms])
   end
 end

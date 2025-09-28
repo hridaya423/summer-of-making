@@ -4,6 +4,7 @@ class ApplicationController < ActionController::Base
   include Pagy::Backend
   include PublicActivity::StoreController
   include Pundit::Authorization
+  include ActionView::Helpers::AssetUrlHelper
 
   before_action :set_paper_trail_whodunnit
 
@@ -11,11 +12,6 @@ class ApplicationController < ActionController::Base
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   # allow_browser versions: :modern
-  before_action do
-    Rails.logger.info ">>> Session[:user_id] = #{session[:user_id]}"
-    Rails.logger.info ">>> Current user ID: #{current_user&.id}"
-    Rails.logger.info ">>> Request IP: #{request.remote_ip}, User-Agent: #{request.user_agent}"
-  end
 
   before_action :authenticate_user!
   before_action :check_if_banned

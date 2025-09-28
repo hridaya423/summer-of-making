@@ -1,6 +1,9 @@
 module Admin
   class YswsReviewsController < ApplicationController
-  def index
+    before_action :authenticate_ysws_reviewer!, except: []
+    skip_before_action :authenticate_admin!
+
+    def index
     @filter = params[:filter] || "pending"
     @sort_by = params[:sort_by] || "random"
 
@@ -11,7 +14,7 @@ module Admin
                COUNT(DISTINCT devlogs.id) as devlogs_count,
                COALESCE(SUM(devlogs.duration_seconds), 0) as total_seconds_coded,
                (SELECT elo_after FROM vote_changes WHERE project_id = projects.id ORDER BY created_at DESC LIMIT 1) as elo_score")
-      .includes(:user, :devlogs, :project_language, ship_certifications: :reviewer)
+      .preload(:user, :devlogs, :project_language, ship_certifications: :reviewer)
 
     case @filter
     when "pending"
@@ -67,6 +70,34 @@ module Admin
     @total_pending = eligible_base.where.not(id: reviewed_project_ids).count
     @total_reviewed = eligible_base.where(id: reviewed_project_ids).count
     @total_all = eligible_base.count
+
+    # YSWS Reviewer Leaderboards
+    est_zone = ActiveSupport::TimeZone.new("America/New_York")
+    current_est = Time.current.in_time_zone(est_zone)
+    week_start = current_est.beginning_of_week(:sunday)
+
+    @leaderboard_week = User.joins("INNER JOIN ysws_review_submissions ON users.id = ysws_review_submissions.reviewer_id")
+      .where.not(ysws_review_submissions: { reviewer_id: nil })
+      .where("ysws_review_submissions.updated_at >= ?", week_start)
+      .group("users.id", "users.display_name", "users.email")
+      .order("COUNT(ysws_review_submissions.id) DESC")
+      .limit(20)
+      .pluck("users.display_name", "users.email", "COUNT(ysws_review_submissions.id)")
+
+    @leaderboard_day = User.joins("INNER JOIN ysws_review_submissions ON users.id = ysws_review_submissions.reviewer_id")
+      .where.not(ysws_review_submissions: { reviewer_id: nil })
+      .where("ysws_review_submissions.updated_at >= ?", 24.hours.ago)
+      .group("users.id", "users.display_name", "users.email")
+      .order("COUNT(ysws_review_submissions.id) DESC")
+      .limit(20)
+      .pluck("users.display_name", "users.email", "COUNT(ysws_review_submissions.id)")
+
+    @leaderboard_all = User.joins("INNER JOIN ysws_review_submissions ON users.id = ysws_review_submissions.reviewer_id")
+      .where.not(ysws_review_submissions: { reviewer_id: nil })
+      .group("users.id", "users.display_name", "users.email")
+      .order("COUNT(ysws_review_submissions.id) DESC")
+      .limit(20)
+      .pluck("users.display_name", "users.email", "COUNT(ysws_review_submissions.id)")
   end
 
   def show
@@ -197,6 +228,10 @@ module Admin
 
     # Apply as a WHERE condition using project IDs
     projects.where(id: language_query.select(:project_id))
+  end
+
+  def authenticate_ysws_reviewer!
+    redirect_to root_path unless current_user&.admin_or_ysws_reviewer?
   end
   end
 end

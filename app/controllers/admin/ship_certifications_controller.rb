@@ -164,24 +164,17 @@ module Admin
           email = stat.email
           user_key = name || email
 
-          # Determine payment rate based on weekly leaderboard position
+          # Determine multiplier based on weekly leaderboard position
           position = weekly_positions[user_key]
-          shells_per_review = case position
-          when 1..3
-            1.5  # 1st to 3rd place
-          when 4..7
-            1.0  # 4th to 7th place
-          else
-            0.75 # 8th place onward
-          end
-
-          total_earned = stat.review_count.to_i * shells_per_review
+          multiplier = ShipReviewerMultiplierService.calculate_multiplier_for_position(position)
+          shells_per_review = ShipReviewerMultiplierService::BASE_SHELLS_PER_REVIEW  # Always show 0.5
+          total_earned = ShipReviewerMultiplierService.calculate_total_earned(stat.review_count.to_i, position)
           total_paid = stat.total_paid.to_f
           total_owed = [ total_earned - total_paid, 0 ].max
           pending_amount = stat.pending_amount.to_f
           review_count = stat.review_count.to_i
 
-          [ name, email, total_owed, shells_per_review, pending_amount ]
+          [ name, email, total_owed, shells_per_review, pending_amount, multiplier ]
         end
     end
 

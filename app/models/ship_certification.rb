@@ -2,16 +2,17 @@
 #
 # Table name: ship_certifications
 #
-#  id                    :bigint           not null, primary key
-#  judgement             :integer          default("pending"), not null
-#  notes                 :text
-#  ysws_feedback_reasons :text
-#  ysws_returned_at      :datetime
-#  created_at            :datetime         not null
-#  updated_at            :datetime         not null
-#  project_id            :bigint           not null
-#  reviewer_id           :bigint
-#  ysws_returned_by_id   :bigint
+#  id                           :bigint           not null, primary key
+#  judgement                    :integer          default("pending"), not null
+#  notes                        :text
+#  recertification_instructions :text
+#  ysws_feedback_reasons        :text
+#  ysws_returned_at             :datetime
+#  created_at                   :datetime         not null
+#  updated_at                   :datetime         not null
+#  project_id                   :bigint           not null
+#  reviewer_id                  :bigint
+#  ysws_returned_by_id          :bigint
 #
 # Indexes
 #
@@ -53,7 +54,12 @@ class ShipCertification < ApplicationRecord
     "unclear_project_demonstration",
     "technical_issues_in_video",
     "insufficient_proof_of_functionality",
-    "other_certification_issues"
+    "demo_not_working_during_review",
+    "project_not_fully_working",
+    "github_repo_not_accessible",
+    "no_demo_video",
+    "other_certification_issues",
+    "insufficient_readme"
   ].freeze
 
   YSWS_FEEDBACK_REASON_LABELS = {
@@ -61,7 +67,12 @@ class ShipCertification < ApplicationRecord
     "unclear_project_demonstration" => "Unclear or confusing project demonstration",
     "technical_issues_in_video" => "Technical issues in the certification video",
     "insufficient_proof_of_functionality" => "Insufficient proof that project works",
-    "other_certification_issues" => "Other certification-related issues"
+    "demo_not_working_during_review" => "Demo Link not working during review",
+    "github_repo_not_accessible" => "GitHub repository not accessible",
+    "no_demo_video" => "No demo video provided",
+    "project_not_fully_working" => "Project not fully working",
+    "other_certification_issues" => "Other certification-related issues",
+    "insufficient_readme" => "Insufficient README documentation"
   }.freeze
 
   def ysws_returned?

@@ -1,5 +1,157 @@
+<body class="adash" style="background: var(--color-background); color: var(--color-text); min-height: 100vh; padding: 2rem;">
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+  <h1>Low-quality review
+    <span class="pill pill-yellow" style="font-size: 0.6em; margin-left: 0.5rem;">
+      <%= @threshold %>+ reports
+    </span>
+  </h1>
+  <div style="display: flex; gap: 1rem;">
+    <%= link_to "Ship Certifications", admin_ship_certifications_path, class: "pill pill-gray", style: "text-decoration: none; padding: 0.5rem 1rem;" %>
+    <button id="toggle-analytics" class="pill pill-blue" style="padding: 0.5rem 1rem; border: none; cursor: pointer;">Show Analytics</button>
+  </div>
+</div>
+
+<!-- Analytics Section -->
+<div id="analytics-section" style="display: none; margin-bottom: 2rem;">
+  <div style="display: flex; gap: 2rem; margin-bottom: 2rem;">
+    <!-- Volume Metrics -->
+    <div style="background: var(--color-card); padding: 1rem; border-radius: 8px; flex: 1;">
+      <h3>Volume Trends</h3>
+      <p><strong>Reports This Week:</strong>
+        <span class="pill pill-dark"><%= @reports_current_week || 0 %></span>
+        <% if (@wow_change || 0) != 0 %>
+          <span style="font-size: 0.8em; color: <%= (@wow_change || 0) > 0 ? '#ff6b6b' : '#51cf66' %>;">
+            <%= (@wow_change || 0) > 0 ? '↑' : '↓' %><%= (@wow_change || 0).abs %>%
+          </span>
+        <% end %>
+      </p>
+      <p><strong>Reports Last Week:</strong> <span class="pill pill-gray"><%= @reports_last_week || 0 %></span></p>
+      <p><strong>Reports This Month:</strong>
+        <span class="pill pill-dark"><%= @reports_current_month || 0 %></span>
+        <% if (@mom_change || 0) != 0 %>
+          <span style="font-size: 0.8em; color: <%= (@mom_change || 0) > 0 ? '#ff6b6b' : '#51cf66' %>;">
+            <%= (@mom_change || 0) > 0 ? '↑' : '↓' %><%= (@mom_change || 0).abs %>%
+          </span>
+        <% end %>
+      </p>
+      <p><strong>Cases Needing Attention:</strong> <span class="pill pill-red"><%= @current_cases_needing_attention || 0 %></span></p>
+      <p><strong>Total Unresolved Reports:</strong> <span class="pill pill-yellow"><%= @total_unresolved_reports || 0 %></span></p>
+    </div>
+
+    <!-- Resolution Metrics -->
+    <div style="background: var(--color-card); padding: 1rem; border-radius: 8px; flex: 1;">
+      <h3>Resolution Performance</h3>
+      <p><strong>Resolved This Week:</strong> <span class="pill pill-green"><%= @resolved_current_week || 0 %></span></p>
+      <p><strong>Resolved This Month:</strong> <span class="pill pill-green"><%= @resolved_current_month || 0 %></span></p>
+      </p>
+      <p><strong>Resolution Rate:</strong>
+        <span style="font-weight: bold; color: <%= (@resolution_rate || 0) > 80 ? '#51cf66' : (@resolution_rate || 0) > 50 ? '#ffd43b' : '#ff6b6b' %>;">
+          <%= @resolution_rate || 0 %>%
+        </span>
+      </p>
+    </div>
+
+    <!-- Impact Metrics -->
+    <div style="background: var(--color-card); padding: 1rem; border-radius: 8px; flex: 1;">
+      <h3>Impact & Actions</h3>
+      <p><strong>Marked Low Quality:</strong> <span class="pill pill-red"><%= @marked_low_quality || 0 %></span></p>
+      <p><strong>Marked OK:</strong> <span class="pill pill-green"><%= @marked_ok || 0 %></span></p>
+      <p><strong>Total Payout Amount:</strong> <span style="font-weight: bold;"><%= @low_quality_payouts_total || 0 %> shells</span></p>
+      <p><strong>Repeat Offenders:</strong> <span class="pill pill-red"><%= (@repeat_offenders_data || []).length %></span></p>
+    </div>
+  </div>
+
+  <!-- Admin Performance -->
+  <div style="background: var(--color-card); padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+    <h3>Shipwright's Performance (Last 30 days)</h3>
+    <% if (@admin_resolution_counts || {}).any? %>
+      <table style="width: 100%; font-size: 0.9rem;">
+        <thead>
+          <tr>
+            <th style="text-align: left;">Admin</th>
+            <th style="text-align: right;">Cases Resolved</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% (@admin_resolution_counts || {}).each do |admin_name, count| %>
+            <tr style="background: <%= cycle('#1c1b22', '#414142') %>;">
+              <td><%= admin_name %></td>
+              <td style="text-align: right;"><%= count %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p>No resolution data available.</p>
+    <% end %>
+  </div>
+
+  <!-- Repeat Offenders -->
+  <% if (@repeat_offenders_data || []).any? %>
+    <div style="background: var(--color-card); padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+      <h3>Repeat Offenders (Multiple Reports This Month)</h3>
+      <table style="width: 100%; font-size: 0.9rem;">
+        <thead>
+          <tr>
+            <th style="text-align: left;">User</th>
+            <th style="text-align: right;">Report Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% (@repeat_offenders_data || []).each do |offender_data| %>
+            <tr style="background: <%= cycle('#1c1b22', '#414142') %>;">
+              <td>
+                <%= offender_data[:display_name] %>
+                <% if offender_data[:user] %>
+                  <br><small style="color: var(--color-text-muted);"><%= offender_data[:user].email %></small>
+                <% end %>
+              </td>
+              <td style="text-align: right;">
+                <span class="pill pill-red"><%= offender_data[:report_count] %></span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+
+  <!-- Weekly Trend -->
+  <div style="background: var(--color-card); padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+    <h3>8-Week Trend</h3>
+    <% if (@weekly_data || []).any? %>
+      <table style="width: 100%; font-size: 0.9rem;">
+        <thead>
+          <tr>
+            <th style="text-align: left;">Week</th>
+            <th style="text-align: right;">Reports</th>
+            <th style="text-align: right;">Resolutions</th>
+            <th style="text-align: right;">Net Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% (@weekly_data || []).each do |week_data| %>
+            <% net_change = week_data[:resolutions] - week_data[:reports] %>
+            <tr style="background: <%= cycle('#1c1b22', '#414142') %>;">
+              <td><%= week_data[:week] %></td>
+              <td style="text-align: right;"><%= week_data[:reports] %></td>
+              <td style="text-align: right;"><%= week_data[:resolutions] %></td>
+              <td style="text-align: right; color: <%= net_change >= 0 ? '#51cf66' : '#ff6b6b' %>;">
+                <%= net_change >= 0 ? '+' : '' %><%= net_change %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p>No trend data available.</p>
+    <% end %>
+  </div>
+</div>
+
 <div class="asec" style="padding: 1.5em;">
-  <h1>Low-quality review</h1>
+  <h2>Current Cases</h2>
   <p>Projects with <strong><%= @threshold %>+</strong> <%= @state %> reports.</p>
 
   <div style="margin: 12px 0; display: flex; gap: 8px;">
@@ -199,3 +351,26 @@
     display: none;
   }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var toggleButton = document.getElementById('toggle-analytics');
+  var analyticsSection = document.getElementById('analytics-section');
+
+  toggleButton.addEventListener('click', function() {
+    if (analyticsSection.style.display === 'none' || analyticsSection.style.display === '') {
+      analyticsSection.style.display = 'block';
+      toggleButton.textContent = 'Hide Analytics';
+      toggleButton.classList.remove('pill-blue');
+      toggleButton.classList.add('pill-gray');
+    } else {
+      analyticsSection.style.display = 'none';
+      toggleButton.textContent = 'Show Analytics';
+      toggleButton.classList.remove('pill-gray');
+      toggleButton.classList.add('pill-blue');
+    }
+  });
+});
+</script>
+
+</body>

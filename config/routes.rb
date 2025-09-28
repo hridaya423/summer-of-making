@@ -195,14 +195,16 @@ class FraudTeamConstraint
   end
 end
 
-Rails.application.routes.draw do
-  # Temporary flash testing routes (remove after testing)
-  if Rails.env.development?
-    get "/test/flash/notice", to: "flash_test#test_notice"
-    get "/test/flash/alert", to: "flash_test#test_alert"
-    get "/test/flash/both", to: "flash_test#test_both"
-  end
+class YswsReviewerConstraint
+  def self.matches?(request)
+    return false unless request.session[:user_id]
 
+    user = User.find_by(id: request.session[:user_id])
+    user&.admin_or_ysws_reviewer?
+  end
+end
+
+Rails.application.routes.draw do
   mount ActiveInsights::Engine => "/insights"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
@@ -384,6 +386,11 @@ Rails.application.routes.draw do
       get :feedback
     end
   end
+  resources :ship_events, only: [] do
+    member do
+      get :feedback
+    end
+  end
 
   post "track_view", to: "view_tracking#create"
 
@@ -415,7 +422,11 @@ Rails.application.routes.draw do
           patch :unresolve
         end
       end
-      resources :fulfillment_dashboard, only: [ :index ]
+      resources :fulfillment_dashboard, only: [ :index ] do
+      collection do
+        post :send_letter_mail
+      end
+    end
       resources :voting_dashboard, only: [ :index ]
       resources :payouts_dashboard, only: [ :index ]
       resources :shop_orders do
@@ -443,6 +454,8 @@ Rails.application.routes.draw do
           post :defrost
           post :grant_ship_certifier
           post :revoke_ship_certifier
+          post :grant_ysws_reviewer
+          post :revoke_ysws_reviewer
           post :give_black_market
           post :take_away_black_market
           post :ban_user
@@ -484,11 +497,6 @@ Rails.application.routes.draw do
         end
       end
       resources :readme_certifications, only: [ :index, :edit, :update ]
-      resources :ysws_reviews, only: [ :index, :show, :update ] do
-        member do
-          patch :return_to_certifier
-        end
-      end
       resources :special_access_users, only: [ :index ]
       resources :shop_items
       resources :shop_card_grants, only: [ :index, :show ]

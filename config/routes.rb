@@ -386,11 +386,6 @@ Rails.application.routes.draw do
       get :feedback
     end
   end
-  resources :ship_events, only: [] do
-    member do
-      get :feedback
-    end
-  end
 
   post "track_view", to: "view_tracking#create"
 

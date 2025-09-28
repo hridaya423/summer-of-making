@@ -500,10 +500,10 @@ Rails.application.routes.draw do
       resources :sinkenings, only: [ :show, :update ], path: "sinkening"
       resources :advent_stickers, only: [ :index, :new, :create, :edit, :update, :destroy ]
       resources :ship_events, only: [] do
-      member do
-        post :regenerate_feedback
+        member do
+          post :regenerate_feedback
+        end
       end
-    end
   end
 
   get "leaderboard", to: "leaderboard#index"

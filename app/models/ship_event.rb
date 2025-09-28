@@ -116,7 +116,7 @@ class ShipEvent < ApplicationRecord
     begin
       service = ShipFeedbackService.new(self)
       feedback = service.generate_feedback
-      
+
       if feedback
         {
           success: true,
@@ -137,11 +137,11 @@ class ShipEvent < ApplicationRecord
         message: "An error occurred while regenerating feedback"
       }
     end
+  end
 
   def mark_new_tutorial_ship_steps
     tp = user.tutorial_progress || TutorialProgress.create!(user: user)
     tp.complete_new_tutorial_step!("ship")
     tp.complete_new_tutorial_step!("shipped")
-
   end
 end

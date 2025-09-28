@@ -512,7 +512,15 @@ Rails.application.routes.draw do
           post :regenerate_feedback
         end
       end
-  end
+
+      constraints YswsReviewerConstraint do
+        resources :ysws_reviews, only: [ :index, :show, :update ] do
+          member do
+            patch :return_to_certifier
+          end
+        end
+      end
+    end
 
   get "leaderboard", to: "leaderboard#index"
 end

@@ -503,15 +503,16 @@ Rails.application.routes.draw do
       resources :sinkenings, only: [ :show, :update ], path: "sinkening"
       resources :advent_stickers, only: [ :index, :new, :create, :edit, :update, :destroy ]
       resources :ship_events, only: [] do
-      member do
-        post :regenerate_feedback
-      end
-    end
-
-    constraints YswsReviewerConstraint do
-      resources :ysws_reviews, only: [ :index, :show, :update ] do
         member do
-          patch :return_to_certifier
+          post :regenerate_feedback
+        end
+      end
+
+      constraints YswsReviewerConstraint do
+        resources :ysws_reviews, only: [ :index, :show, :update ] do
+          member do
+            patch :return_to_certifier
+          end
         end
       end
     end
